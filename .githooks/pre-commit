@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Pre-commit: gitleaks (secret scanning)"
+gitleaks protect --staged --no-banner
+
+echo "==> Pre-commit: gofumpt (formatting)"
+UNFORMATTED=$(gofumpt -l . 2>/dev/null || true)
+if [ -n "$UNFORMATTED" ]; then
+    echo "Files need formatting:"
+    echo "$UNFORMATTED"
+    echo ""
+    echo "Run 'make fmt' to fix."
+    exit 1
+fi
+
+echo "==> Pre-commit: golangci-lint"
+golangci-lint run ./...
+
+echo "==> Pre-commit: all checks passed"
