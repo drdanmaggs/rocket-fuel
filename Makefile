@@ -7,8 +7,8 @@ build:
 	go build $(LDFLAGS) -o bin/rf .
 
 install:
-	go build $(LDFLAGS) -o $(GOPATH)/bin/rf .
-	@echo "Installed rf to $(GOPATH)/bin/rf"
+	go build $(LDFLAGS) -o $(HOME)/go/bin/rf .
+	@echo "Installed rf to $(HOME)/go/bin/rf"
 
 test:
 	go test -race ./...
