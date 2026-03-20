@@ -1,7 +1,7 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS := -ldflags "-X github.com/drdanmaggs/rocket-fuel/cmd.Version=$(VERSION)"
 
-.PHONY: build install test test-unit test-integration lint fmt fmt-check clean all
+.PHONY: build install test test-unit test-integration lint fmt fmt-check clean all setup
 
 build:
 	go build $(LDFLAGS) -o bin/rocket-fuel .
@@ -30,5 +30,9 @@ fmt-check:
 
 clean:
 	rm -rf bin/
+
+setup:
+	git config core.hooksPath .githooks
+	@echo "Git hooks configured to use .githooks/"
 
 all: fmt lint test build
