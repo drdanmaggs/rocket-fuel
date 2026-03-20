@@ -50,14 +50,14 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		}
 
 		// Launch heartbeat loop in the heartbeat window.
-		if err := tm.SendKeys(sessionName, "heartbeat", "rocket-fuel heartbeat --loop"); err != nil {
+		if err := tm.SendKeys(sessionName, "heartbeat", "rf heartbeat --loop"); err != nil {
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch heartbeat: %v\n", err)
 		} else {
 			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched heartbeat in background tab.")
 		}
 
 		// Launch status in the dashboard window.
-		if err := tm.SendKeys(sessionName, "dashboard", "rocket-fuel status"); err != nil {
+		if err := tm.SendKeys(sessionName, "dashboard", "rf status"); err != nil {
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch dashboard: %v\n", err)
 		} else {
 			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched status in dashboard tab.")
