@@ -82,7 +82,7 @@ type mockError struct{}
 
 func (e *mockError) Error() string { return "mock error" }
 
-func TestSetupCreatesSessionAndMissionControlWindow(t *testing.T) {
+func TestSetupCreatesSession(t *testing.T) {
 	t.Parallel()
 
 	tm := newMockRunner()
@@ -100,14 +100,11 @@ func TestSetupCreatesSessionAndMissionControlWindow(t *testing.T) {
 		t.Error("expected session to exist")
 	}
 
-	// Setup creates one additional window: mission-control.
-	// Window 0 (integrator) is the default from NewSession (renamed via CLI only).
+	// Setup creates only the session (window 0 = integrator).
+	// Mission-control is created post-attach by cmd/up.go.
 	windows := tm.windows["test-session"]
-	if len(windows) != 1 {
-		t.Errorf("expected 1 window created (mission-control), got %d: %v", len(windows), windows)
-	}
-	if len(windows) > 0 && windows[0] != WindowMissionCtrl {
-		t.Errorf("expected window %q, got %q", WindowMissionCtrl, windows[0])
+	if len(windows) != 0 {
+		t.Errorf("expected 0 additional windows (mission-control created post-attach), got %d: %v", len(windows), windows)
 	}
 }
 
@@ -132,19 +129,14 @@ func TestSetupIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestSetupCleansUpOnWindowFailure(t *testing.T) {
+func TestSetupCleansUpOnSessionFailure(t *testing.T) {
 	t.Parallel()
 
 	tm := newMockRunner()
-	tm.failOn = "NewWindow"
+	tm.failOn = "NewSession"
 
 	_, err := Setup(tm, "fail-session")
 	if err == nil {
-		t.Fatal("expected Setup to fail when NewWindow fails")
-	}
-
-	// Session should have been killed (cleanup on partial failure).
-	if tm.sessions["fail-session"] {
-		t.Error("expected session to be cleaned up after window creation failure")
+		t.Fatal("expected Setup to fail when NewSession fails")
 	}
 }
