@@ -1,5 +1,6 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-LDFLAGS := -ldflags "-X github.com/drdanmaggs/rocket-fuel/cmd.Version=$(VERSION)"
+SOURCE_DIR := $(shell pwd)
+LDFLAGS := -ldflags "-X github.com/drdanmaggs/rocket-fuel/cmd.Version=$(VERSION) -X github.com/drdanmaggs/rocket-fuel/cmd.SourceDir=$(SOURCE_DIR)"
 
 .PHONY: build install test test-unit test-integration lint fmt fmt-check clean all setup
 
