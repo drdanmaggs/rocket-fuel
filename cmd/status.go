@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
-	"os/exec"
-	"strings"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
@@ -24,7 +21,7 @@ func init() {
 }
 
 func runStatus(cmd *cobra.Command, _ []string) error {
-	repoDir, err := statusRepoRoot()
+	repoDir, err := repoRoot()
 	if err != nil {
 		return fmt.Errorf("find repo root: %w", err)
 	}
@@ -39,12 +36,4 @@ func runStatus(cmd *cobra.Command, _ []string) error {
 
 	_, _ = fmt.Fprint(cmd.OutOrStdout(), status.Format(s))
 	return nil
-}
-
-func statusRepoRoot() (string, error) {
-	out, err := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel").Output()
-	if err != nil {
-		return "", fmt.Errorf("not in a git repo: %w", err)
-	}
-	return strings.TrimSpace(string(out)), nil
 }
