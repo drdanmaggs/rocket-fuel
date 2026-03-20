@@ -12,8 +12,8 @@ var Version = "dev"
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of Rocket Fuel",
-	Run: func(_ *cobra.Command, _ []string) {
-		fmt.Printf("rocket-fuel %s\n", Version)
+	Run: func(cmd *cobra.Command, _ []string) {
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "rocket-fuel %s\n", Version)
 	},
 }
 
