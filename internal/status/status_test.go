@@ -78,7 +78,9 @@ func TestGatherWithWorkers(t *testing.T) {
 
 	tm := newMockRunner()
 	tm.sessions["rocket-fuel"] = true
-	tm.windows["rocket-fuel"] = map[string]bool{"worker-1": true}
+	// Worker-1 has its own session (active).
+	tm.sessions["rf-worker-1"] = true
+	// Worker-2 has no session (completed).
 
 	s, err := Gather(tm, "rocket-fuel", repoDir)
 	if err != nil {
@@ -89,14 +91,14 @@ func TestGatherWithWorkers(t *testing.T) {
 		t.Fatalf("expected 2 workers, got %d", len(s.Workers))
 	}
 
-	// worker-1 should be active (window exists).
+	// worker-1 should be active (session exists).
 	if !s.Workers[0].WindowOpen {
-		t.Error("expected worker-1 window to be open")
+		t.Error("expected worker-1 to be active")
 	}
 
-	// worker-2 should be done (no window).
+	// worker-2 should be done (no session).
 	if s.Workers[1].WindowOpen {
-		t.Error("expected worker-2 window to be closed")
+		t.Error("expected worker-2 to be done")
 	}
 }
 
