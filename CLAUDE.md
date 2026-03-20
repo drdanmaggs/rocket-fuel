@@ -38,3 +38,64 @@ This means:
 - Structural and behavioral commits separated
 - CI must pass before merge — lint, test, build gated on every PR
 - Pre-commit hooks: gitleaks + gofmt + golangci-lint
+
+## Testing Anti-Patterns (BANNED)
+
+These were mistakes we made early and corrected. Do not repeat them.
+
+### Never fake system tools this project depends on
+
+Rocket Fuel lives and dies by tmux, git, and the GitHub API. Testing against recorders or stubs that don't prove commands actually work is dangerous — you ship code that "passes tests" but breaks in reality.
+
+**Banned:**
+```go
+// Fake recorder that proves nothing
+fake := NewFakeTmux()
+fake.Record("new-session", "-s", "test")
+assert(fake.HasCommand("new-session")) // So what? Did tmux actually create the session?
+```
+
+**Required:** Test real tools, isolate via configuration:
+```go
+// Real tmux with isolated socket (can't interfere with user's tmux)
+tm := testutil.NewRealTmux(t)  // uses -L rf-test-<PID> socket
+tm.NewSession(t, "test")       // real tmux session
+assert(tm.HasSession(t, "test")) // actually checks tmux
+```
+
+```go
+// Real git in temp dir (automatic cleanup)
+repoDir := testutil.InitTestRepo(t)  // real git init + commit in t.TempDir()
+_, wtDir := testutil.InitTestRepoWithWorktree(t, "worker-1")  // real worktree
+```
+
+**The rule:** Isolate via sockets, temp dirs, and httptest servers — not by replacing the tool with a fake that doesn't exercise the real code path.
+
+### Never run Cobra Execute() in parallel tests
+
+Cobra's `rootCmd` is a package-level singleton. `SetArgs`/`SetOut`/`Execute` mutate it. Parallel tests cause data races.
+
+```go
+// BANNED — data race on rootCmd
+func TestFoo(t *testing.T) {
+    t.Parallel()
+    rootCmd.SetArgs([]string{"version"})
+    rootCmd.Execute()
+}
+```
+
+```go
+// CORRECT — sequential, reset after
+func TestFoo(t *testing.T) {
+    // Not parallel — mutates rootCmd.
+    rootCmd.SetOut(buf)
+    rootCmd.SetArgs([]string{"version"})
+    rootCmd.Execute()
+    rootCmd.SetOut(nil)
+    rootCmd.SetArgs(nil)
+}
+```
+
+### RecordingTmux is for orchestration logic only
+
+`RecordingTmux` exists for testing "what commands WOULD be issued" in orchestration logic (e.g., does the Integrator issue the right sequence of tmux commands). It does NOT replace integration tests against real tmux.
