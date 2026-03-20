@@ -9,6 +9,9 @@ import (
 // Version is set at build time via ldflags.
 var Version = "dev"
 
+// SourceDir is set at build time via ldflags — path to the rocket-fuel source repo.
+var SourceDir = ""
+
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of Rocket Fuel",

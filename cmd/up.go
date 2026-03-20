@@ -5,10 +5,12 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/launch"
 	"github.com/drdanmaggs/rocket-fuel/internal/prime"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
+	"github.com/drdanmaggs/rocket-fuel/internal/selfupdate"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
@@ -33,6 +35,10 @@ func init() {
 
 func runUp(cmd *cobra.Command, _ []string) error {
 	out := cmd.OutOrStdout()
+
+	// Self-update: check if binary is stale, rebuild if needed.
+	selfUpdate(out)
+
 	tm := tmux.New()
 	sessionName := session.DefaultSessionName
 
@@ -137,4 +143,23 @@ func launchIntegrator(tm tmux.Runner, sessionName string) error {
 
 	launchCmd := launch.IntegratorCommand(contextPath)
 	return tm.SendKeys(sessionName, "integrator", launchCmd)
+}
+
+func selfUpdate(w io.Writer) {
+	binaryPath, err := os.Executable()
+	if err != nil {
+		return
+	}
+
+	result, err := selfupdate.Check(SourceDir, Version, binaryPath)
+	if err != nil || result == nil {
+		return
+	}
+
+	if result.Updated {
+		_, _ = fmt.Fprintf(w, "  Updated rf: %s -> %s\n", result.OldVersion, result.NewVersion)
+		// Re-exec the new binary with the same args.
+		_ = syscall.Exec(binaryPath, os.Args, os.Environ())
+		// If exec fails, continue with current binary.
+	}
 }
