@@ -83,6 +83,11 @@ func (c *CLI) AttachCC(session string) error {
 	return syscall.Exec(tmuxPath, args, os.Environ())
 }
 
+// SendKeys sends keystrokes to a specific window in a session.
+func (c *CLI) SendKeys(session, window, keys string) error {
+	return c.run("send-keys", "-t", session+":"+window, keys, "Enter")
+}
+
 func (c *CLI) run(args ...string) error {
 	fullArgs := args
 	if c.socket != "" {
