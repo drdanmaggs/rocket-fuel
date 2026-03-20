@@ -1,3 +1,4 @@
+// Package cmd implements the rocket-fuel CLI commands.
 package cmd
 
 import (
@@ -13,6 +14,7 @@ var rootCmd = &cobra.Command{
 	Long:  `Rocket Fuel is a multi-agent orchestrator that composes tmux-CC, GitHub Projects, Claude Code skills, and git worktrees into a Visionary/Integrator workflow.`,
 }
 
+// Execute runs the root command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
