@@ -82,7 +82,7 @@ type mockError struct{}
 
 func (e *mockError) Error() string { return "mock error" }
 
-func TestSetupCreatesSessionAndWindows(t *testing.T) {
+func TestSetupCreatesSessionAndMissionControlWindow(t *testing.T) {
 	t.Parallel()
 
 	tm := newMockRunner()
@@ -100,15 +100,14 @@ func TestSetupCreatesSessionAndWindows(t *testing.T) {
 		t.Error("expected session to exist")
 	}
 
+	// Setup creates one additional window: mission-control.
+	// Window 0 (integrator) is the default from NewSession (renamed via CLI only).
 	windows := tm.windows["test-session"]
-	if len(windows) != len(Windows) {
-		t.Errorf("expected %d windows, got %d", len(Windows), len(windows))
+	if len(windows) != 1 {
+		t.Errorf("expected 1 window created (mission-control), got %d: %v", len(windows), windows)
 	}
-
-	for i, expected := range Windows {
-		if windows[i] != expected {
-			t.Errorf("window %d: expected %q, got %q", i, expected, windows[i])
-		}
+	if len(windows) > 0 && windows[0] != WindowMissionCtrl {
+		t.Errorf("expected window %q, got %q", WindowMissionCtrl, windows[0])
 	}
 }
 

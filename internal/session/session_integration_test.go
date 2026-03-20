@@ -45,14 +45,17 @@ func TestSetupCreatesAllWindows_Integration(t *testing.T) {
 		t.Fatal("expected session to exist after Setup")
 	}
 
-	// List windows and verify all 3 are present.
+	// List windows and verify integrator + mission-control are present.
 	windows := listWindows(t, sessionName)
 
-	expected := []string{"integrator", "heartbeat", "dashboard"}
+	expected := []string{"integrator", "mission-control"}
 	for _, name := range expected {
 		if !contains(windows, name) {
 			t.Errorf("expected window %q to exist, got windows: %v", name, windows)
 		}
+	}
+	if len(windows) != 2 {
+		t.Errorf("expected exactly 2 windows, got %d: %v", len(windows), windows)
 	}
 }
 
