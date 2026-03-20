@@ -9,7 +9,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "rocket-fuel",
+	Use:   "rf",
 	Short: "Visionary/Integrator multi-agent orchestrator",
 	Long:  `Rocket Fuel is a multi-agent orchestrator that composes tmux-CC, GitHub Projects, Claude Code skills, and git worktrees into a Visionary/Integrator workflow.`,
 }

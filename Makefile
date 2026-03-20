@@ -4,10 +4,11 @@ LDFLAGS := -ldflags "-X github.com/drdanmaggs/rocket-fuel/cmd.Version=$(VERSION)
 .PHONY: build install test test-unit test-integration lint fmt fmt-check clean all setup
 
 build:
-	go build $(LDFLAGS) -o bin/rocket-fuel .
+	go build $(LDFLAGS) -o bin/rf .
 
 install:
-	go install $(LDFLAGS) .
+	go build $(LDFLAGS) -o $(GOPATH)/bin/rf .
+	@echo "Installed rf to $(GOPATH)/bin/rf"
 
 test:
 	go test -race ./...

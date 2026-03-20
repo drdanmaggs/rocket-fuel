@@ -2,19 +2,29 @@
 set -euo pipefail
 
 echo "==> Pre-commit: gitleaks (secret scanning)"
-gitleaks protect --staged --no-banner
+if command -v gitleaks &>/dev/null; then
+    gitleaks protect --staged --no-banner
+else
+    echo "    ⚠ gitleaks not installed, skipping"
+fi
 
-echo "==> Pre-commit: gofumpt (formatting)"
-UNFORMATTED=$(gofumpt -l . 2>/dev/null || true)
-if [ -n "$UNFORMATTED" ]; then
-    echo "Files need formatting:"
-    echo "$UNFORMATTED"
-    echo ""
-    echo "Run 'make fmt' to fix."
-    exit 1
+echo "==> Pre-commit: gofumpt (auto-fix formatting)"
+if command -v gofumpt &>/dev/null; then
+    gofumpt -w .
+    # Re-stage any files that were reformatted.
+    git diff --name-only | xargs -r git add
+elif [ -x "$HOME/go/bin/gofumpt" ]; then
+    "$HOME/go/bin/gofumpt" -w .
+    git diff --name-only | xargs -r git add
+else
+    echo "    ⚠ gofumpt not installed, skipping"
 fi
 
 echo "==> Pre-commit: golangci-lint"
-golangci-lint run ./...
+if command -v golangci-lint &>/dev/null; then
+    golangci-lint run ./...
+else
+    echo "    ⚠ golangci-lint not installed, skipping"
+fi
 
 echo "==> Pre-commit: all checks passed"

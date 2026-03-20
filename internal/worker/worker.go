@@ -96,6 +96,12 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("%w\n%s", err, out)
 	}
+
+	// Configure git hooks in the new worktree.
+	setup := exec.CommandContext(context.Background(), "make", "setup")
+	setup.Dir = worktreeDir
+	_ = setup.Run() // best-effort — don't fail spawn if make setup fails
+
 	return nil
 }
 

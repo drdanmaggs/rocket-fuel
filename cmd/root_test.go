@@ -17,8 +17,8 @@ func TestRootCommandExists(t *testing.T) {
 		t.Fatal("expected root command to be initialized")
 	}
 
-	if rootCmd.Use != "rocket-fuel" {
-		t.Errorf("expected root command use to be 'rocket-fuel', got %q", rootCmd.Use)
+	if rootCmd.Use != "rf" {
+		t.Errorf("expected root command use to be 'rf', got %q", rootCmd.Use)
 	}
 }
 
@@ -50,7 +50,7 @@ func TestVersionCommandOutput(t *testing.T) {
 	}
 
 	out := buf.String()
-	if !strings.HasPrefix(out, "rocket-fuel") {
+	if !strings.HasPrefix(out, "rf") {
 		t.Errorf("expected output to start with 'rocket-fuel', got %q", out)
 	}
 
