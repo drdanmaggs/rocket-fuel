@@ -18,7 +18,7 @@ const (
 
 // Setup creates the Rocket Fuel tmux session.
 // Window 0 is renamed to "integrator" (no orphan window).
-// A background "mission-control" window is created for the heartbeat loop.
+// A background "mission-control" window is created for the mission control loop.
 // Returns true if a new session was created, false if one already existed.
 func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	if tm.HasSession(sessionName) {
@@ -34,7 +34,7 @@ func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 		_ = cli.RenameWindow(sessionName, "0", WindowIntegrator)
 	}
 
-	// Create the mission-control window for the heartbeat loop.
+	// Create the mission-control window for the mission control loop.
 	if err := tm.NewWindow(sessionName, WindowMissionCtrl); err != nil {
 		_ = tm.KillSession(sessionName)
 		return false, fmt.Errorf("create window %q: %w", WindowMissionCtrl, err)
