@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
@@ -102,12 +103,16 @@ func TestSendKeysToWindow_Integration(t *testing.T) {
 		t.Fatalf("SendKeys failed: %v", err)
 	}
 
-	// Capture the pane content and verify the command was received.
-	// Give tmux a moment to process the keystroke.
-	out := tmuxRun(t, "capture-pane", "-t", sessionName+":integrator", "-p")
-	if !strings.Contains(out, "ROCKET_FUEL_TEST_MARKER") {
-		t.Errorf("expected test marker in pane output, got:\n%s", out)
+	// Retry pane capture — CI runners are slower, shell needs time to process.
+	var out string
+	for range 20 {
+		time.Sleep(100 * time.Millisecond)
+		out = tmuxRun(t, "capture-pane", "-t", sessionName+":integrator", "-p")
+		if strings.Contains(out, "ROCKET_FUEL_TEST_MARKER") {
+			return
+		}
 	}
+	t.Errorf("expected test marker in pane output after 2s, got:\n%s", out)
 }
 
 // TestIntegratorWindowSelectedByDefault_Integration verifies that the
