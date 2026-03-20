@@ -8,11 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/drdanmaggs/rocket-fuel/internal/dispatch"
 	"github.com/drdanmaggs/rocket-fuel/internal/heartbeat"
-	"github.com/drdanmaggs/rocket-fuel/internal/project"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
-	"github.com/drdanmaggs/rocket-fuel/internal/status"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 	"github.com/drdanmaggs/rocket-fuel/internal/worker"
 	"github.com/spf13/cobra"
@@ -75,69 +72,10 @@ func runHeartbeat(cmd *cobra.Command, _ []string) error {
 
 func buildHeartbeatFuncs(dryRun bool) heartbeat.Funcs {
 	dispatchFn := func() (string, error) {
-		repoDir, err := repoRoot()
+		result, err := runDispatchCycle(dryRun)
 		if err != nil {
 			return "", err
 		}
-
-		cfg, err := loadProjectConfig()
-		if err != nil {
-			return "no project linked", nil
-		}
-
-		board, err := project.FetchBoard(cfg.Owner, cfg.ProjectNumber)
-		if err != nil {
-			return "", err
-		}
-
-		tm := tmux.New()
-		sessionName := session.DefaultSessionName
-
-		s, err := status.Gather(tm, sessionName, repoDir)
-		if err != nil {
-			return "", err
-		}
-
-		activeWorkers := 0
-		for _, w := range s.Workers {
-			if w.WindowOpen {
-				activeWorkers++
-			}
-		}
-
-		maxWorkers := loadMaxWorkers(repoDir)
-
-		spawnFn := func(issueNumber int) error {
-			if dryRun {
-				return nil
-			}
-			issue, fetchErr := fetchIssue(issueNumber)
-			if fetchErr != nil {
-				return fetchErr
-			}
-			return worker.Spawn(tm, worker.SpawnConfig{
-				RepoDir:     repoDir,
-				SessionName: sessionName,
-			}, *issue)
-		}
-
-		transitionFn := func(itemID, targetStatus string) error {
-			if dryRun {
-				return nil
-			}
-			return project.TransitionItem(ghRunner, cfg.Owner, cfg.ProjectNumber, itemID, targetStatus)
-		}
-
-		result, err := dispatch.Run(dispatch.Config{MaxWorkers: maxWorkers}, dispatch.Deps{
-			Board:          board,
-			ActiveWorkers:  activeWorkers,
-			SpawnFunc:      spawnFn,
-			TransitionFunc: transitionFn,
-		})
-		if err != nil {
-			return "", err
-		}
-
 		return result.Reason, nil
 	}
 
