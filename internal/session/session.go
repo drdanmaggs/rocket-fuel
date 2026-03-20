@@ -11,7 +11,7 @@ import (
 const DefaultSessionName = "rocket-fuel"
 
 // Windows defines the tmux windows created for a Rocket Fuel session.
-var Windows = []string{"integrator", "dashboard"}
+var Windows = []string{"integrator", "heartbeat", "dashboard"}
 
 // Setup creates the Rocket Fuel tmux session with all agent windows.
 // Returns true if a new session was created, false if one already existed.
