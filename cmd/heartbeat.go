@@ -121,10 +121,18 @@ func buildHeartbeatFuncs(dryRun bool) heartbeat.Funcs {
 			}, *issue)
 		}
 
+		transitionFn := func(itemID, targetStatus string) error {
+			if dryRun {
+				return nil
+			}
+			return project.TransitionItem(ghRunner, cfg.Owner, cfg.ProjectNumber, itemID, targetStatus)
+		}
+
 		result, err := dispatch.Run(dispatch.Config{MaxWorkers: maxWorkers}, dispatch.Deps{
-			Board:         board,
-			ActiveWorkers: activeWorkers,
-			SpawnFunc:     spawnFn,
+			Board:          board,
+			ActiveWorkers:  activeWorkers,
+			SpawnFunc:      spawnFn,
+			TransitionFunc: transitionFn,
 		})
 		if err != nil {
 			return "", err

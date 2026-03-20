@@ -118,3 +118,64 @@ func TestRun_dispatchesWhenCapacityAvailable(t *testing.T) {
 		t.Errorf("expected spawn called with 42, got %d", spawnedIssue)
 	}
 }
+
+func TestRun_transitionsItemAfterSpawn(t *testing.T) {
+	t.Parallel()
+
+	board := &project.BoardSummary{
+		Columns: map[string][]project.Item{
+			"Scoped": {{Number: 42, Title: "Ready", ID: "PVTI_42"}},
+		},
+	}
+
+	var transitionedID, transitionedStatus string
+	transitionFn := func(itemID, status string) error {
+		transitionedID = itemID
+		transitionedStatus = status
+		return nil
+	}
+
+	_, err := Run(Config{MaxWorkers: 3}, Deps{
+		Board:          board,
+		ActiveWorkers:  0,
+		SpawnFunc:      func(_ int) error { return nil },
+		TransitionFunc: transitionFn,
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if transitionedID != "PVTI_42" {
+		t.Errorf("expected transition for PVTI_42, got %q", transitionedID)
+	}
+	if transitionedStatus != "In Progress" {
+		t.Errorf("expected status 'In Progress', got %q", transitionedStatus)
+	}
+}
+
+func TestRun_doesNotTransitionOnSpawnFailure(t *testing.T) {
+	t.Parallel()
+
+	board := &project.BoardSummary{
+		Columns: map[string][]project.Item{
+			"Scoped": {{Number: 42, Title: "Ready", ID: "PVTI_42"}},
+		},
+	}
+
+	transitionCalled := false
+	transitionFn := func(_, _ string) error {
+		transitionCalled = true
+		return nil
+	}
+
+	_, _ = Run(Config{MaxWorkers: 3}, Deps{
+		Board:          board,
+		ActiveWorkers:  0,
+		SpawnFunc:      func(_ int) error { return fmt.Errorf("fail") },
+		TransitionFunc: transitionFn,
+	})
+
+	if transitionCalled {
+		t.Error("expected transition NOT to be called on spawn failure")
+	}
+}
