@@ -11,6 +11,7 @@ type mockRunner struct {
 }
 
 func (m *mockRunner) HasSession(_ string) bool      { return true }
+func (m *mockRunner) HasWindow(_, _ string) bool    { return true }
 func (m *mockRunner) NewSession(_ string) error     { return nil }
 func (m *mockRunner) NewWindow(_, _ string) error   { return nil }
 func (m *mockRunner) KillSession(_ string) error    { return nil }

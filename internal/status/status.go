@@ -54,7 +54,7 @@ func Gather(tm tmux.Runner, sessionName, repoDir string) (*Summary, error) {
 
 		ws := WorkerStatus{
 			Name:       name,
-			WindowOpen: s.SessionActive && tm.SelectWindow(sessionName, name) == nil,
+			WindowOpen: s.SessionActive && tm.HasWindow(sessionName, name),
 			Branch:     worktreeBranch(worktreeDir),
 		}
 

@@ -14,6 +14,7 @@ import (
 // Real implementation calls tmux CLI; test doubles record commands.
 type Runner interface {
 	HasSession(name string) bool
+	HasWindow(session, window string) bool
 	NewSession(name string) error
 	NewWindow(session, name string) error
 	SelectWindow(session, window string) error
@@ -41,6 +42,21 @@ func NewWithSocket(socket string) *CLI {
 // HasSession checks if a tmux session with the given name exists.
 func (c *CLI) HasSession(name string) bool {
 	return c.run("has-session", "-t", name) == nil
+}
+
+// HasWindow checks if a window with the given name exists in the session.
+// Unlike SelectWindow, this does NOT change the active window — it's read-only.
+func (c *CLI) HasWindow(session, window string) bool {
+	out, err := c.output("list-windows", "-t", session, "-F", "#{window_name}")
+	if err != nil {
+		return false
+	}
+	for _, line := range strings.Split(out, "\n") {
+		if line == window {
+			return true
+		}
+	}
+	return false
 }
 
 // NewSession creates a new detached tmux session.
@@ -87,6 +103,20 @@ func (c *CLI) AttachCC(session string) error {
 // SendKeys sends keystrokes to a specific window in a session.
 func (c *CLI) SendKeys(session, window, keys string) error {
 	return c.run("send-keys", "-t", session+":"+window, keys, "Enter")
+}
+
+func (c *CLI) output(args ...string) (string, error) {
+	fullArgs := args
+	if c.socket != "" {
+		fullArgs = append([]string{"-L", c.socket}, args...)
+	}
+
+	cmd := exec.CommandContext(context.Background(), "tmux", fullArgs...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", fmt.Errorf("tmux %s: %w\n%s", strings.Join(args, " "), err, out)
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 func (c *CLI) run(args ...string) error {

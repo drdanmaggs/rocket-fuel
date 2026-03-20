@@ -24,6 +24,16 @@ func (m *mockRunner) HasSession(name string) bool {
 	return m.sessions[name]
 }
 
+func (m *mockRunner) HasWindow(session, window string) bool {
+	m.calls = append(m.calls, "HasWindow:"+session+":"+window)
+	for _, w := range m.windows[session] {
+		if w == window {
+			return true
+		}
+	}
+	return false
+}
+
 func (m *mockRunner) NewSession(name string) error {
 	m.calls = append(m.calls, "NewSession:"+name)
 	if m.failOn == "NewSession" {

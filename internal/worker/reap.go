@@ -81,8 +81,7 @@ func Reap(tm tmux.Runner, sessionName, repoDir string) ([]ReapResult, error) {
 }
 
 func hasWindow(tm tmux.Runner, session, window string) bool {
-	// SelectWindow returns nil if the window exists.
-	return tm.SelectWindow(session, window) == nil
+	return tm.HasWindow(session, window)
 }
 
 func removeWorktree(repoDir, worktreeDir string) error {
