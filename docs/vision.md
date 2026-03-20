@@ -145,6 +145,42 @@ When the Visionary jumps into a worker tab, the Integrator should know. Otherwis
 >
 > The tension: too much structure kills the Visionary's spontaneity. Too little structure means the Integrator can't track reality. Need to find the sweet spot.
 
+## Why this matters
+
+The traditional software development role was: understand requirements, write code, ship it. AI now does all three. The entire profession is being restructured around this reality.
+
+### The developer role is dead. Long live the Visionary.
+
+For decades, the developer was the bottleneck. You needed someone who could translate ideas into code. That person was expensive, scarce, and powerful — they were the only ones who could build the thing.
+
+AI removes that bottleneck. Code generation, test writing, debugging, refactoring — these are commoditised. A Visionary with AI tools can ship what used to require a team. The skill that matters now isn't writing code. It's knowing *what to build and why*.
+
+Developers who survive this shift won't do so by writing better code than AI. They'll do it by becoming Visionaries — developing taste, product judgment, and the ability to see what users actually need. The ones who cling to "I write the code" as their identity will find that identity increasingly worthless.
+
+### The Integrator is AI's natural role
+
+The Integrator role — tracking progress, managing priorities, monitoring CI, dispatching work, keeping the machine running — is structured, disciplined, relentless work. Humans are terrible at it. We get bored, lose focus, chase shiny objects, forget to follow up.
+
+AI doesn't. An AI Integrator has perfect oversight, never gets distracted, never drops a thread, and can manage 20 workers simultaneously without breaking a sweat. This is the role AI was born to play.
+
+### The new stack
+
+```
+Human  →  Visionary   (taste, judgment, direction, "what" and "why")
+AI     →  Integrator  (execution, oversight, discipline, "how" and "when")
+AI     →  Workers     (code, tests, PRs, the actual building)
+```
+
+This isn't a productivity hack. It's a fundamental restructuring of who does what in software development. The human's value is no longer their ability to type code — it's their ability to see what matters.
+
+Rocket Fuel is this stack as a product.
+
+### Where new people enter
+
+This restructuring opens the door wider than it's ever been. Previously, you needed years of technical training to contribute to software. Now, anyone with vision, taste, and the ability to articulate what they want can ship real software.
+
+The barrier to entry shifts from "can you code?" to "can you see what needs to exist?" That's a fundamentally different — and much larger — talent pool.
+
 ## What Rocket Fuel is NOT
 
 - **Not a platform.** It's ~1000 lines of glue, not 371K lines of infrastructure.
