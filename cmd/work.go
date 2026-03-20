@@ -47,7 +47,7 @@ func runWork(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get repo root.
-	repoDir, err := gitRepoRoot()
+	repoDir, err := repoRoot()
 	if err != nil {
 		return fmt.Errorf("find repo root: %w", err)
 	}
@@ -127,14 +127,6 @@ func fetchIssue(number int) (*worker.Issue, error) {
 		Body:   gh.Body,
 		Labels: labels,
 	}, nil
-}
-
-func gitRepoRoot() (string, error) {
-	out, err := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel").Output()
-	if err != nil {
-		return "", fmt.Errorf("not in a git repo: %w", err)
-	}
-	return strings.TrimSpace(string(out)), nil
 }
 
 func skillFromLabels(labels []string) string {

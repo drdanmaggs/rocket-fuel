@@ -23,7 +23,7 @@ func init() {
 }
 
 func runReap(cmd *cobra.Command, _ []string) error {
-	repoDir, err := gitRepoRoot()
+	repoDir, err := repoRoot()
 	if err != nil {
 		return fmt.Errorf("find repo root: %w", err)
 	}
