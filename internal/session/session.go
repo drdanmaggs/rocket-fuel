@@ -7,8 +7,8 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
 
-// DefaultSessionName is the tmux session name used by Rocket Fuel.
-const DefaultSessionName = "rocket-fuel"
+// DefaultSessionName is the tmux session name for the integrator.
+const DefaultSessionName = "rf-integrator"
 
 // MissionControlSession is the separate tmux session for mission control.
 const MissionControlSession = "rf-mission-control"
