@@ -36,6 +36,11 @@ func init() {
 func runUp(cmd *cobra.Command, _ []string) error {
 	out := cmd.OutOrStdout()
 
+	// Pre-flight: must be in a git repo.
+	if _, err := repoRoot(); err != nil {
+		return fmt.Errorf("not in a git repository — cd into your project first")
+	}
+
 	// Self-update: check if binary is stale, rebuild if needed.
 	selfUpdate(out)
 
