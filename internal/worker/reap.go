@@ -1,0 +1,110 @@
+package worker
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+
+	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
+)
+
+// ReapResult describes what was cleaned up for a single worker.
+type ReapResult struct {
+	WindowName  string
+	WorktreeDir string
+	Reaped      bool
+	Reason      string
+}
+
+// Reap finds completed workers and cleans up their worktrees and tmux windows.
+// A worker is considered complete when its tmux window no longer exists
+// (Claude Code session ended).
+func Reap(tm tmux.Runner, sessionName, repoDir string) ([]ReapResult, error) {
+	worktreesDir := filepath.Join(repoDir, ".worktrees")
+
+	entries, err := os.ReadDir(worktreesDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil // no worktrees directory = nothing to reap
+		}
+		return nil, fmt.Errorf("read worktrees dir: %w", err)
+	}
+
+	var results []ReapResult
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		name := entry.Name() // e.g. "worker-42"
+		worktreeDir := filepath.Join(worktreesDir, name)
+
+		// Check if the tmux window still exists.
+		windowExists := tm.HasSession(sessionName) && hasWindow(tm, sessionName, name)
+
+		if windowExists {
+			results = append(results, ReapResult{
+				WindowName:  name,
+				WorktreeDir: worktreeDir,
+				Reaped:      false,
+				Reason:      "window still active",
+			})
+			continue
+		}
+
+		// Window is gone — clean up the worktree.
+		if err := removeWorktree(repoDir, worktreeDir); err != nil {
+			results = append(results, ReapResult{
+				WindowName:  name,
+				WorktreeDir: worktreeDir,
+				Reaped:      false,
+				Reason:      fmt.Sprintf("cleanup failed: %v", err),
+			})
+			continue
+		}
+
+		results = append(results, ReapResult{
+			WindowName:  name,
+			WorktreeDir: worktreeDir,
+			Reaped:      true,
+			Reason:      "cleaned up",
+		})
+	}
+
+	// Prune stale worktree references.
+	_ = pruneWorktrees(repoDir)
+
+	return results, nil
+}
+
+func hasWindow(tm tmux.Runner, session, window string) bool {
+	// SelectWindow returns nil if the window exists.
+	return tm.SelectWindow(session, window) == nil
+}
+
+func removeWorktree(repoDir, worktreeDir string) error {
+	cmd := exec.CommandContext(context.Background(),
+		"git", "worktree", "remove", "--force", worktreeDir,
+	)
+	cmd.Dir = repoDir
+
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("%w\n%s", err, out)
+	}
+	return nil
+}
+
+func pruneWorktrees(repoDir string) error {
+	cmd := exec.CommandContext(context.Background(),
+		"git", "worktree", "prune",
+	)
+	cmd.Dir = repoDir
+
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("%w\n%s", err, out)
+	}
+	return nil
+}
