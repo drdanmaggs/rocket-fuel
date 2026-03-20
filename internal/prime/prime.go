@@ -4,12 +4,16 @@
 package prime
 
 import (
+	_ "embed"
 	"fmt"
 	"strings"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
 )
+
+//go:embed integrator.md
+var defaultIntegratorPrompt string
 
 // Input holds the pre-fetched data needed to build the Integrator context.
 type Input struct {
@@ -24,9 +28,11 @@ type Input struct {
 func Build(in *Input) string {
 	var b strings.Builder
 
-	if in.IntegratorPrompt != "" {
-		_, _ = fmt.Fprintln(&b, in.IntegratorPrompt)
+	prompt := in.IntegratorPrompt
+	if prompt == "" {
+		prompt = defaultIntegratorPrompt
 	}
+	_, _ = fmt.Fprintln(&b, prompt)
 
 	if in.Board != nil {
 		_, _ = fmt.Fprintln(&b)
