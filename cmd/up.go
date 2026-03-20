@@ -117,11 +117,7 @@ func launchIntegrator(tm tmux.Runner, sessionName string) error {
 	in := &prime.Input{
 		RepoDir: repoDir,
 		Branch:  primeCurrentBranch(),
-	}
-
-	promptPath := filepath.Join(repoDir, "prompts", "integrator.md")
-	if data, readErr := os.ReadFile(promptPath); readErr == nil {
-		in.IntegratorPrompt = string(data)
+		// IntegratorPrompt left empty — prime.Build uses the embedded default.
 	}
 
 	if cfg, loadErr := loadProjectConfig(); loadErr == nil {
