@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/prime"
 )
@@ -35,5 +36,10 @@ func WritePrimeContext(repoDir string, input *prime.Input) (string, error) {
 
 // IntegratorCommand returns the claude launch command for the integrator window.
 func IntegratorCommand(contextFilePath string) string {
-	return fmt.Sprintf("claude --prompt-file %s", contextFilePath)
+	return fmt.Sprintf("claude --prompt-file %s", shellQuote(contextFilePath))
+}
+
+// shellQuote wraps a string in single quotes, escaping any embedded single quotes.
+func shellQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
