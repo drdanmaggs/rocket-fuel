@@ -43,13 +43,19 @@ func TestWritePrimeContext_createsFile(t *testing.T) {
 	}
 }
 
-func TestIntegratorCommand_includesPromptFile(t *testing.T) {
+func TestIntegratorCommand_usesSystemPrompt(t *testing.T) {
 	t.Parallel()
 
 	cmd := IntegratorCommand("/tmp/context.md")
 
-	if cmd != "claude --prompt-file '/tmp/context.md'" {
-		t.Errorf("unexpected command: %q", cmd)
+	if !strings.Contains(cmd, "--system-prompt") {
+		t.Errorf("expected --system-prompt flag, got: %q", cmd)
+	}
+	if !strings.Contains(cmd, "$(cat") {
+		t.Errorf("expected $(cat ...) to read file, got: %q", cmd)
+	}
+	if !strings.Contains(cmd, "/tmp/context.md") {
+		t.Errorf("expected file path in command, got: %q", cmd)
 	}
 }
 

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -31,8 +32,12 @@ func init() {
 }
 
 func runUp(cmd *cobra.Command, _ []string) error {
+	out := cmd.OutOrStdout()
 	tm := tmux.New()
 	sessionName := session.DefaultSessionName
+
+	// Show launch banner with project info.
+	printLaunchBanner(out)
 
 	created, err := session.Setup(tm, sessionName)
 	if err != nil {
@@ -40,39 +45,26 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	}
 
 	if created {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Created session %q with windows: integrator, heartbeat, dashboard\n", sessionName)
-
 		// Launch Claude Code in the integrator window with prime context.
 		if launchErr := launchIntegrator(tm, sessionName); launchErr != nil {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch integrator: %v\n", launchErr)
-		} else {
-			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched Claude Code in integrator tab.")
+			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", launchErr)
 		}
 
-		// Launch heartbeat loop in the heartbeat window.
-		if err := tm.SendKeys(sessionName, "heartbeat", "rf heartbeat --loop"); err != nil {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch heartbeat: %v\n", err)
-		} else {
-			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched heartbeat in background tab.")
+		// Launch mission control in background window.
+		if err := tm.SendKeys(sessionName, session.WindowMissionCtrl, "rf mission-control --loop"); err != nil {
+			_, _ = fmt.Fprintf(out, "  Warning: could not launch mission control: %v\n", err)
 		}
 
-		// Launch status in the dashboard window.
-		if err := tm.SendKeys(sessionName, "dashboard", "rf status"); err != nil {
-			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch dashboard: %v\n", err)
-		} else {
-			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched status in dashboard tab.")
-		}
+		_, _ = fmt.Fprintln(out)
 	} else {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Attaching to existing session %q\n", sessionName)
+		_, _ = fmt.Fprintf(out, "  Reattaching to existing session\n\n")
 	}
 
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 	if dryRun {
-		_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Dry run — not attaching.")
+		_, _ = fmt.Fprintln(out, "Dry run — not attaching.")
 		return nil
 	}
-
-	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Attaching with tmux -CC (iTerm2 control mode)...")
 
 	// AttachCC replaces this process via exec — does not return on success.
 	if err := tm.AttachCC(sessionName); err != nil {
@@ -80,6 +72,30 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	}
 
 	return nil
+}
+
+func printLaunchBanner(w io.Writer) {
+	_, _ = fmt.Fprintln(w, "Rocket Fuel")
+	_, _ = fmt.Fprintln(w)
+
+	// Show repo info.
+	if repoDir, err := repoRoot(); err == nil {
+		_, _ = fmt.Fprintf(w, "  Repo:    %s\n", filepath.Base(repoDir))
+	}
+
+	// Show project info.
+	if cfg, err := loadProjectConfig(); err == nil {
+		// Try to fetch the board to get the project title.
+		if board, fetchErr := project.FetchBoard(cfg.Owner, cfg.ProjectNumber); fetchErr == nil && board.ProjectTitle != "" {
+			_, _ = fmt.Fprintf(w, "  Project: %s (#%d)\n", board.ProjectTitle, cfg.ProjectNumber)
+		} else {
+			_, _ = fmt.Fprintf(w, "  Project: #%d (owner: %s)\n", cfg.ProjectNumber, cfg.Owner)
+		}
+	} else {
+		_, _ = fmt.Fprintln(w, "  Project: none (will auto-discover)")
+	}
+
+	_, _ = fmt.Fprintln(w)
 }
 
 func launchIntegrator(tm tmux.Runner, sessionName string) error {
