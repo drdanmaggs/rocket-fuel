@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -98,7 +96,7 @@ func parseProjectRef(ref string) (string, int, error) {
 }
 
 func configDir() (string, error) {
-	repoDir, err := projectRepoRoot()
+	repoDir, err := repoRoot()
 	if err != nil {
 		return "", err
 	}
@@ -137,12 +135,4 @@ func loadProjectConfig() (*project.Config, error) {
 	}
 
 	return &cfg, nil
-}
-
-func projectRepoRoot() (string, error) {
-	out, err := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel").Output()
-	if err != nil {
-		return "", fmt.Errorf("not in a git repo: %w", err)
-	}
-	return strings.TrimSpace(string(out)), nil
 }

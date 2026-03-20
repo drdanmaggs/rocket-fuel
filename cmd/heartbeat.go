@@ -75,7 +75,7 @@ func runHeartbeat(cmd *cobra.Command, _ []string) error {
 
 func buildHeartbeatFuncs(dryRun bool) heartbeat.Funcs {
 	dispatchFn := func() (string, error) {
-		repoDir, err := statusRepoRoot()
+		repoDir, err := repoRoot()
 		if err != nil {
 			return "", err
 		}
@@ -146,7 +146,7 @@ func buildHeartbeatFuncs(dryRun bool) heartbeat.Funcs {
 			return "[dry-run] reap skipped", nil
 		}
 
-		repoDir, err := statusRepoRoot()
+		repoDir, err := repoRoot()
 		if err != nil {
 			return "", err
 		}
