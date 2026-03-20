@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestFetchProjectMeta_parsesFieldsAndOptions(t *testing.T) {
+func TestFetchMeta_parsesFieldsAndOptions(t *testing.T) {
 	t.Parallel()
 
 	// Simulate gh project field-list JSON output.
@@ -16,7 +16,7 @@ func TestFetchProjectMeta_parsesFieldsAndOptions(t *testing.T) {
 	projectJSON := `{"id":"PVT_123","title":"My Project"}`
 
 	callCount := 0
-	runner := func(args ...string) ([]byte, error) {
+	runner := func(_ ...string) ([]byte, error) {
 		callCount++
 		if callCount == 1 {
 			return []byte(projectJSON), nil
@@ -24,7 +24,7 @@ func TestFetchProjectMeta_parsesFieldsAndOptions(t *testing.T) {
 		return []byte(fieldJSON), nil
 	}
 
-	meta, err := FetchProjectMeta(runner, "drdanmaggs", 1)
+	meta, err := FetchMeta(runner, "drdanmaggs", 1)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -109,14 +109,14 @@ func TestTransitionItem_errorForInvalidStatus(t *testing.T) {
 	}
 }
 
-func TestFetchProjectMeta_errorWhenNoStatusField(t *testing.T) {
+func TestFetchMeta_errorWhenNoStatusField(t *testing.T) {
 	t.Parallel()
 
 	fieldJSON := `{"fields":[{"id":"PVTF_title","name":"Title","type":"ProjectV2Field"}]}`
 	projectJSON := `{"id":"PVT_123"}`
 
 	callCount := 0
-	runner := func(args ...string) ([]byte, error) {
+	runner := func(_ ...string) ([]byte, error) {
 		callCount++
 		if callCount == 1 {
 			return []byte(projectJSON), nil
@@ -124,19 +124,19 @@ func TestFetchProjectMeta_errorWhenNoStatusField(t *testing.T) {
 		return []byte(fieldJSON), nil
 	}
 
-	_, err := FetchProjectMeta(runner, "owner", 1)
+	_, err := FetchMeta(runner, "owner", 1)
 	if err == nil {
 		t.Fatal("expected error when Status field missing")
 	}
-	if !strings.Contains(err.Error(), "Status field not found") {
-		t.Errorf("expected 'Status field not found' error, got: %v", err)
+	if !strings.Contains(err.Error(), "status field not found") {
+		t.Errorf("expected 'status field not found' error, got: %v", err)
 	}
 }
 
 func TestMoveItem_returnsErrorOnFailure(t *testing.T) {
 	t.Parallel()
 
-	runner := func(args ...string) ([]byte, error) {
+	runner := func(_ ...string) ([]byte, error) {
 		return nil, fmt.Errorf("gh failed: exit 1")
 	}
 

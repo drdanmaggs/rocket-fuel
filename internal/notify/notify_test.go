@@ -10,12 +10,12 @@ type mockRunner struct {
 	selectErr      error
 }
 
-func (m *mockRunner) HasSession(_ string) bool    { return true }
-func (m *mockRunner) NewSession(_ string) error   { return nil }
-func (m *mockRunner) NewWindow(_, _ string) error { return nil }
-func (m *mockRunner) KillSession(_ string) error  { return nil }
-func (m *mockRunner) AttachCC(_ string) error              { return nil }
-func (m *mockRunner) SendKeys(_, _, _ string) error        { return nil }
+func (m *mockRunner) HasSession(_ string) bool      { return true }
+func (m *mockRunner) NewSession(_ string) error     { return nil }
+func (m *mockRunner) NewWindow(_, _ string) error   { return nil }
+func (m *mockRunner) KillSession(_ string) error    { return nil }
+func (m *mockRunner) AttachCC(_ string) error       { return nil }
+func (m *mockRunner) SendKeys(_, _, _ string) error { return nil }
 
 func (m *mockRunner) SelectWindow(_, window string) error {
 	if m.selectErr != nil {

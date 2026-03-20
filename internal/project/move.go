@@ -18,15 +18,15 @@ type MoveRequest struct {
 	OptionID  string // status option node ID
 }
 
-// ProjectMeta holds cached project metadata needed for board operations.
-type ProjectMeta struct {
+// Meta holds cached project metadata needed for board operations.
+type Meta struct {
 	ProjectID     string            // project node ID
 	StatusFieldID string            // Status field node ID
 	StatusOptions map[string]string // status name → option ID
 }
 
-// FetchProjectMeta retrieves project ID, status field ID, and option IDs.
-func FetchProjectMeta(run GHRunner, owner string, number int) (*ProjectMeta, error) {
+// FetchMeta retrieves project ID, status field ID, and option IDs.
+func FetchMeta(run GHRunner, owner string, number int) (*Meta, error) {
 	// Get project ID.
 	projOut, err := run("project", "view", strconv.Itoa(number),
 		"--owner", owner, "--format", "json")
@@ -63,7 +63,7 @@ func FetchProjectMeta(run GHRunner, owner string, number int) (*ProjectMeta, err
 		return nil, fmt.Errorf("parse fields: %w", err)
 	}
 
-	meta := &ProjectMeta{
+	meta := &Meta{
 		ProjectID:     proj.ID,
 		StatusOptions: make(map[string]string),
 	}
@@ -79,7 +79,7 @@ func FetchProjectMeta(run GHRunner, owner string, number int) (*ProjectMeta, err
 	}
 
 	if meta.StatusFieldID == "" {
-		return nil, fmt.Errorf("Status field not found in project")
+		return nil, fmt.Errorf("status field not found in project")
 	}
 
 	return meta, nil
@@ -88,7 +88,7 @@ func FetchProjectMeta(run GHRunner, owner string, number int) (*ProjectMeta, err
 // TransitionItem is a convenience function that fetches project metadata
 // and moves an item to the target status in one call.
 func TransitionItem(run GHRunner, owner string, number int, itemID, targetStatus string) error {
-	meta, err := FetchProjectMeta(run, owner, number)
+	meta, err := FetchMeta(run, owner, number)
 	if err != nil {
 		return err
 	}
