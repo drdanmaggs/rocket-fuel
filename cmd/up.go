@@ -8,11 +8,9 @@ import (
 	"syscall"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/launch"
-	"github.com/drdanmaggs/rocket-fuel/internal/prime"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
 	"github.com/drdanmaggs/rocket-fuel/internal/selfupdate"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
-	"github.com/drdanmaggs/rocket-fuel/internal/status"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 	"github.com/spf13/cobra"
 )
@@ -23,8 +21,8 @@ var upCmd = &cobra.Command{
 	Long: `Creates a tmux session with the Integrator, launches Claude Code,
 and attaches in control mode (-CC) so iTerm2 renders a native tab.
 
-Mission control runs in a separate background session.
-If a session already exists, attaches to it without relaunching.`,
+Claude gets its context via a SessionStart hook that runs rf prime.
+Mission control runs in a separate background session.`,
 	RunE: runUp,
 }
 
@@ -37,7 +35,8 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	out := cmd.OutOrStdout()
 
 	// Pre-flight: must be in a git repo.
-	if _, err := repoRoot(); err != nil {
+	repoDir, err := repoRoot()
+	if err != nil {
 		return fmt.Errorf("not in a git repository — cd into your project first")
 	}
 
@@ -56,9 +55,16 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	}
 
 	if created {
-		// Launch Claude Code in the integrator window with prime context.
-		if launchErr := launchIntegrator(tm, sessionName); launchErr != nil {
-			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", launchErr)
+		// Ensure .claude/settings.json has the SessionStart hook.
+		if err := launch.EnsureClaudeSettings(repoDir); err != nil {
+			_, _ = fmt.Fprintf(out, "  Warning: could not set up Claude hooks: %v\n", err)
+		}
+
+		// Launch Claude Code in the integrator window.
+		// Context is injected automatically via the SessionStart hook (rf prime).
+		launchCmd := launch.IntegratorCommand()
+		if err := tm.SendKeys(sessionName, session.WindowIntegrator, launchCmd); err != nil {
+			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", err)
 		}
 
 		// Start mission control in a separate detached session.
@@ -106,39 +112,6 @@ func printLaunchBanner(w io.Writer) {
 	}
 
 	_, _ = fmt.Fprintln(w)
-}
-
-func launchIntegrator(tm tmux.Runner, sessionName string) error {
-	repoDir, err := repoRoot()
-	if err != nil {
-		return fmt.Errorf("find repo root: %w", err)
-	}
-
-	in := &prime.Input{
-		RepoDir: repoDir,
-		Branch:  primeCurrentBranch(),
-		// IntegratorPrompt left empty — prime.Build uses the embedded default.
-	}
-
-	if cfg, loadErr := loadProjectConfig(); loadErr == nil {
-		board, fetchErr := project.FetchBoard(cfg.Owner, cfg.ProjectNumber)
-		if fetchErr == nil {
-			in.Board = board
-		}
-	}
-
-	s, gatherErr := status.Gather(tm, sessionName, repoDir)
-	if gatherErr == nil {
-		in.Status = s
-	}
-
-	contextPath, err := launch.WritePrimeContext(repoDir, in)
-	if err != nil {
-		return err
-	}
-
-	launchCmd := launch.IntegratorCommand(contextPath)
-	return tm.SendKeys(sessionName, "integrator", launchCmd)
 }
 
 func selfUpdate(w io.Writer) {
