@@ -2,15 +2,20 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
+    # Only release when actual code changes (not just docs/CI)
+    if: >
+      contains(join(github.event.commits.*.message, ' '), 'feat:') ||
+      contains(join(github.event.commits.*.message, ' '), 'fix:') ||
+      contains(join(github.event.commits.*.message, ' '), 'refactor:') ||
+      contains(join(github.event.commits.*.message, ' '), 'perf:')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,6 +26,15 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Auto-tag
+        id: tag
+        run: |
+          # Generate version from date + short hash
+          VERSION="v0.$(date +%Y%m%d).$(git rev-parse --short HEAD)"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
