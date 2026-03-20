@@ -16,7 +16,7 @@ func TestFetchMeta_parsesFieldsAndOptions(t *testing.T) {
 	projectJSON := `{"id":"PVT_123","title":"My Project"}`
 
 	callCount := 0
-	runner := func(args ...string) ([]byte, error) {
+	runner := func(_ ...string) ([]byte, error) {
 		callCount++
 		if callCount == 1 {
 			return []byte(projectJSON), nil
