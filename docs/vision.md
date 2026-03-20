@@ -94,6 +94,57 @@ Each worker gets an isolated copy of the repo via `git worktree add`. This means
 
 Skills (`/tdd`, `/issue-scope`, `/epc`, `/bug-fix`, `/ship`, `/pr-quality`) are battle-tested playbooks. Workers don't need custom logic — they run the right skill for the job. The Integrator routes issues to skills based on labels.
 
+## Principles (from the book)
+
+These principles from *Rocket Fuel* govern how the Visionary and Integrator relate to each other. They're encoded into the Integrator's behaviour.
+
+### 1. No end runs
+
+The Visionary talks to the Integrator, not directly to workers. If the Visionary wants a worker doing something different, they tell the Integrator, who translates it into the plan. Going around the Integrator creates chaos — conflicting instructions, the project board out of sync, workers getting whiplash.
+
+### 2. The Integrator filters, not just parks
+
+The Integrator doesn't just say "noted." It actively evaluates every idea:
+- Does this align with the current milestone?
+- What's the effort vs impact?
+- Is this a shiny object or a genuine insight?
+- Does this replace something on the board, or is it additive?
+
+Some ideas go to Someday/Maybe. Some get fast-tracked to Backlog. Some get pushed back on — "we tried something similar and it didn't work because..."
+
+### 3. Clear ownership boundary
+
+The Visionary owns the **what** and **why**. The Integrator owns the **how** and **when**.
+
+"We need better onboarding" = Visionary. How to break it down, which sprint, which workers, what order = Integrator. The Visionary doesn't override execution decisions.
+
+### 4. Tie-breaker rules
+
+- Conflict about **product direction** (what to build, why) → Visionary wins
+- Conflict about **execution** (priorities, sequencing, approach) → Integrator wins
+
+### 5. The Same Page Meeting
+
+When the Visionary opens the Integrator tab after being away, the Integrator catches them up — milestone progress, what shipped, what's blocked, what's next. No prompting needed. The Integrator proactively summarises at natural milestones.
+
+### 6. The Visionary going "below the line" is tracked
+
+When the Visionary jumps into a worker tab, the Integrator should know. Otherwise the project board is out of sync with reality.
+
+### 7. The Elon Problem (UNRESOLVED)
+
+> **This needs more thinking.** The book says the Visionary should stay "above the line" — directing through the Integrator, not getting into the weeds. But some Visionaries (Elon is the archetype) are brilliant precisely because they get their hands dirty. They spot things on the factory floor that no amount of delegation would surface.
+>
+> In our context: the Visionary should be able to jump into a worker tab and start coding. But how does the Integrator handle this?
+>
+> Options to explore:
+> - The Integrator detects the Visionary is active in a worker tab and pauses that worker's autonomous behaviour
+> - The Visionary "checks out" an issue from the Integrator before going below the line
+> - The Integrator simply observes and updates the board state after the Visionary finishes
+> - The worker tab gets a special mode when the Visionary is present
+>
+> The tension: too much structure kills the Visionary's spontaneity. Too little structure means the Integrator can't track reality. Need to find the sweet spot.
+
 ## What Rocket Fuel is NOT
 
 - **Not a platform.** It's ~1000 lines of glue, not 371K lines of infrastructure.
