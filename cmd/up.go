@@ -40,13 +40,27 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	}
 
 	if created {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Created session %q with windows: integrator, dashboard\n", sessionName)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Created session %q with windows: integrator, heartbeat, dashboard\n", sessionName)
 
 		// Launch Claude Code in the integrator window with prime context.
 		if launchErr := launchIntegrator(tm, sessionName); launchErr != nil {
 			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch integrator: %v\n", launchErr)
 		} else {
 			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched Claude Code in integrator tab.")
+		}
+
+		// Launch heartbeat loop in the heartbeat window.
+		if err := tm.SendKeys(sessionName, "heartbeat", "rocket-fuel heartbeat --loop"); err != nil {
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch heartbeat: %v\n", err)
+		} else {
+			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched heartbeat in background tab.")
+		}
+
+		// Launch status in the dashboard window.
+		if err := tm.SendKeys(sessionName, "dashboard", "rocket-fuel status"); err != nil {
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch dashboard: %v\n", err)
+		} else {
+			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched status in dashboard tab.")
 		}
 	} else {
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Attaching to existing session %q\n", sessionName)
