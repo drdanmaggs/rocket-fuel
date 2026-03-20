@@ -31,8 +31,8 @@ jobs:
       - name: Build
         run: make build
 
-  test:
-    name: Tests
+  test-unit:
+    name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: fast-checks
@@ -46,7 +46,20 @@ jobs:
       - name: Unit tests
         run: make test
 
+  test-integration:
+    name: Integration Tests (real tmux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: fast-checks
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Install tmux
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tmux
+
       - name: Integration tests
-        run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq tmux
-          make test-integration
+        run: make test-integration
