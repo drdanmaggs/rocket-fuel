@@ -100,6 +100,16 @@ func (c *CLI) AttachCC(session string) error {
 	return syscall.Exec(tmuxPath, args, os.Environ())
 }
 
+// RenameWindow changes the name of a window in a session.
+// Target can be a window name or index (e.g., "0" for the first window).
+func (c *CLI) RenameWindow(session, target, newName string) error {
+	windowTarget := session + ":" + target
+	if target == "" {
+		windowTarget = session
+	}
+	return c.run("rename-window", "-t", windowTarget, newName)
+}
+
 // SendKeys sends keystrokes to a specific window in a session.
 func (c *CLI) SendKeys(session, window, keys string) error {
 	return c.run("send-keys", "-t", session+":"+window, keys, "Enter")
