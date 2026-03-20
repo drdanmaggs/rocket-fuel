@@ -2,8 +2,14 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
+	"github.com/drdanmaggs/rocket-fuel/internal/launch"
+	"github.com/drdanmaggs/rocket-fuel/internal/prime"
+	"github.com/drdanmaggs/rocket-fuel/internal/project"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
+	"github.com/drdanmaggs/rocket-fuel/internal/status"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 	"github.com/spf13/cobra"
 )
@@ -12,9 +18,10 @@ var upCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Start the Rocket Fuel tmux session",
 	Long: `Creates a tmux session with Integrator and Dashboard windows,
+launches Claude Code in the Integrator tab with full project context,
 then attaches in control mode (-CC) so iTerm2 renders them as native tabs.
 
-If a session already exists, attaches to it.`,
+If a session already exists, attaches to it without relaunching.`,
 	RunE: runUp,
 }
 
@@ -34,6 +41,13 @@ func runUp(cmd *cobra.Command, _ []string) error {
 
 	if created {
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Created session %q with windows: integrator, dashboard\n", sessionName)
+
+		// Launch Claude Code in the integrator window with prime context.
+		if launchErr := launchIntegrator(tm, sessionName); launchErr != nil {
+			_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Warning: could not launch integrator: %v\n", launchErr)
+		} else {
+			_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Launched Claude Code in integrator tab.")
+		}
 	} else {
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Attaching to existing session %q\n", sessionName)
 	}
@@ -52,4 +66,45 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	}
 
 	return nil
+}
+
+func launchIntegrator(tm tmux.Runner, sessionName string) error {
+	repoDir, err := statusRepoRoot()
+	if err != nil {
+		return fmt.Errorf("find repo root: %w", err)
+	}
+
+	in := &prime.Input{
+		RepoDir: repoDir,
+		Branch:  primeCurrentBranch(),
+	}
+
+	// Load integrator prompt.
+	promptPath := filepath.Join(repoDir, "prompts", "integrator.md")
+	if data, readErr := os.ReadFile(promptPath); readErr == nil {
+		in.IntegratorPrompt = string(data)
+	}
+
+	// Load board state (optional).
+	if cfg, loadErr := loadProjectConfig(); loadErr == nil {
+		board, fetchErr := project.FetchBoard(cfg.Owner, cfg.ProjectNumber)
+		if fetchErr == nil {
+			in.Board = board
+		}
+	}
+
+	// Load worker status (optional).
+	s, gatherErr := status.Gather(tm, sessionName, repoDir)
+	if gatherErr == nil {
+		in.Status = s
+	}
+
+	// Write context file and launch Claude.
+	contextPath, err := launch.WritePrimeContext(repoDir, in)
+	if err != nil {
+		return err
+	}
+
+	launchCmd := launch.IntegratorCommand(contextPath)
+	return tm.SendKeys(sessionName, "integrator", launchCmd)
 }
