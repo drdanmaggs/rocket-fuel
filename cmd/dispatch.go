@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/dispatch"
@@ -79,10 +81,18 @@ func runDispatch(cmd *cobra.Command, _ []string) error {
 		}, *issue)
 	}
 
+	transitionFn := func(itemID, targetStatus string) error {
+		if dryRun {
+			return nil
+		}
+		return project.TransitionItem(ghRunner, cfg.Owner, cfg.ProjectNumber, itemID, targetStatus)
+	}
+
 	result, err := dispatch.Run(dispatch.Config{MaxWorkers: maxWorkers}, dispatch.Deps{
-		Board:         board,
-		ActiveWorkers: activeWorkers,
-		SpawnFunc:     spawnFn,
+		Board:          board,
+		ActiveWorkers:  activeWorkers,
+		SpawnFunc:      spawnFn,
+		TransitionFunc: transitionFn,
 	})
 	if err != nil {
 		return err
@@ -95,6 +105,11 @@ func runDispatch(cmd *cobra.Command, _ []string) error {
 	}
 
 	return nil
+}
+
+// ghRunner executes gh CLI commands — the real implementation of project.GHRunner.
+func ghRunner(args ...string) ([]byte, error) {
+	return exec.CommandContext(context.Background(), "gh", args...).Output()
 }
 
 func loadMaxWorkers(repoDir string) int {
