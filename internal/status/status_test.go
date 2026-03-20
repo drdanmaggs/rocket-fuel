@@ -19,7 +19,12 @@ func newMockRunner() *mockRunner {
 	}
 }
 
-func (m *mockRunner) HasSession(name string) bool   { return m.sessions[name] }
+func (m *mockRunner) HasSession(name string) bool { return m.sessions[name] }
+
+func (m *mockRunner) HasWindow(session, window string) bool {
+	return m.windows[session] != nil && m.windows[session][window]
+}
+
 func (m *mockRunner) NewSession(_ string) error     { return nil }
 func (m *mockRunner) NewWindow(_, _ string) error   { return nil }
 func (m *mockRunner) KillSession(_ string) error    { return nil }
