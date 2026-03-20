@@ -11,7 +11,7 @@ import (
 var landCmd = &cobra.Command{
 	Use:   "land",
 	Short: "Shut down the Rocket Fuel session",
-	Long:  `Destroys the Rocket Fuel tmux session and all its windows. The rocket lands.`,
+	Long:  `Destroys both the integrator and mission control sessions. The rocket lands.`,
 	RunE:  runLand,
 }
 
@@ -21,17 +21,16 @@ func init() {
 
 func runLand(cmd *cobra.Command, _ []string) error {
 	tm := tmux.New()
-	sessionName := session.DefaultSessionName
 
-	killed, err := session.Teardown(tm, sessionName)
+	killed, err := session.TeardownAll(tm, session.DefaultSessionName)
 	if err != nil {
 		return fmt.Errorf("landing failed: %w", err)
 	}
 
 	if killed {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Rocket landed. Session %q destroyed.\n", sessionName)
+		_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Rocket landed. All sessions destroyed.")
 	} else {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "No active session %q found.\n", sessionName)
+		_, _ = fmt.Fprintln(cmd.OutOrStdout(), "No active sessions found.")
 	}
 
 	return nil
