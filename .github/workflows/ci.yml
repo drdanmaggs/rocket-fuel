@@ -23,6 +23,19 @@ jobs:
           go install mvdan.cc/gofumpt@latest
           test -z "$(gofumpt -l .)" || (echo "Files need formatting:" && gofumpt -l . && exit 1)
 
+      - name: go mod tidy check
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum || (echo "go.mod/go.sum not tidy — run 'go mod tidy'" && exit 1)
+
+      - name: No replace directives
+        run: |
+          if grep -q "^replace" go.mod; then
+            echo "go.mod contains replace directives — these break 'go install'"
+            grep "^replace" go.mod
+            exit 1
+          fi
+
       - name: Lint
         uses: golangci/golangci-lint-action@v7
         with:
