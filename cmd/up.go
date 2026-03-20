@@ -15,7 +15,7 @@ import (
 )
 
 var upCmd = &cobra.Command{
-	Use: "launch",
+	Use:   "launch",
 	Short: "Start the Rocket Fuel tmux session",
 	Long: `Creates a tmux session with Integrator and Dashboard windows,
 launches Claude Code in the Integrator tab with full project context,
