@@ -34,7 +34,7 @@ func init() {
 }
 
 func runDispatch(cmd *cobra.Command, _ []string) error {
-	repoDir, err := statusRepoRoot()
+	repoDir, err := repoRoot()
 	if err != nil {
 		return fmt.Errorf("find repo root: %w", err)
 	}
