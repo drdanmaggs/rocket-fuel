@@ -16,7 +16,7 @@ type WindowCommand struct {
 	Command string
 }
 
-// WritePrimeContext writes the prime context to a file for claude --prompt-file.
+// WritePrimeContext writes the prime context to a file for claude --system-prompt.
 // Returns the file path.
 func WritePrimeContext(repoDir string, input *prime.Input) (string, error) {
 	dir := filepath.Join(repoDir, ".rocket-fuel")
@@ -35,8 +35,9 @@ func WritePrimeContext(repoDir string, input *prime.Input) (string, error) {
 }
 
 // IntegratorCommand returns the claude launch command for the integrator window.
+// Uses --system-prompt with $(cat <file>) to load the context from disk.
 func IntegratorCommand(contextFilePath string) string {
-	return fmt.Sprintf("claude --prompt-file %s", shellQuote(contextFilePath))
+	return fmt.Sprintf("claude --system-prompt \"$(cat %s)\"", shellQuote(contextFilePath))
 }
 
 // shellQuote wraps a string in single quotes, escaping any embedded single quotes.
