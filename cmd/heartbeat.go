@@ -8,37 +8,38 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/drdanmaggs/rocket-fuel/internal/heartbeat"
+	"github.com/drdanmaggs/rocket-fuel/internal/missioncontrol"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 	"github.com/drdanmaggs/rocket-fuel/internal/worker"
 	"github.com/spf13/cobra"
 )
 
-var heartbeatCmd = &cobra.Command{
-	Use:   "heartbeat",
-	Short: "Run dispatch + reap cycle",
+var missionControlCmd = &cobra.Command{
+	Use:    "mission-control",
+	Hidden: true, // internal command — launched by rf launch, not user-facing
+	Short:  "Run dispatch + reap cycle",
 	Long: `Executes one dispatch + reap cycle. With --loop, runs continuously
-on a configurable interval. The dumb, reliable background process.`,
-	RunE: runHeartbeat,
+on a configurable interval. The background process that keeps the machine running.`,
+	RunE: runMissionControl,
 }
 
 func init() {
-	heartbeatCmd.Flags().Bool("loop", false, "Run continuously")
-	heartbeatCmd.Flags().Duration("interval", 3*time.Minute, "Loop interval (requires --loop)")
-	heartbeatCmd.Flags().Bool("dry-run", false, "Show what would happen without acting")
-	rootCmd.AddCommand(heartbeatCmd)
+	missionControlCmd.Flags().Bool("loop", false, "Run continuously")
+	missionControlCmd.Flags().Duration("interval", 3*time.Minute, "Loop interval (requires --loop)")
+	missionControlCmd.Flags().Bool("dry-run", false, "Show what would happen without acting")
+	rootCmd.AddCommand(missionControlCmd)
 }
 
-func runHeartbeat(cmd *cobra.Command, _ []string) error {
+func runMissionControl(cmd *cobra.Command, _ []string) error {
 	loop, _ := cmd.Flags().GetBool("loop")
 	interval, _ := cmd.Flags().GetDuration("interval")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 
-	fns := buildHeartbeatFuncs(dryRun)
+	fns := buildMissionControlFuncs(dryRun)
 
 	if !loop {
-		result, err := heartbeat.RunCycle(fns)
+		result, err := missioncontrol.RunCycle(fns)
 		if err != nil {
 			return err
 		}
@@ -58,19 +59,19 @@ func runHeartbeat(cmd *cobra.Command, _ []string) error {
 		cancel()
 	}()
 
-	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Heartbeat starting (interval: %s, dry-run: %v)\n", interval, dryRun)
+	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Mission Control active (interval: %s, dry-run: %v)\n", interval, dryRun)
 
 	logFn := func(msg string) {
 		_, _ = fmt.Fprintln(cmd.OutOrStdout(), msg)
 	}
 
-	heartbeat.Loop(ctx, interval, fns, logFn)
+	missioncontrol.Loop(ctx, interval, fns, logFn)
 
-	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Heartbeat stopped.")
+	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Mission Control offline.")
 	return nil
 }
 
-func buildHeartbeatFuncs(dryRun bool) heartbeat.Funcs {
+func buildMissionControlFuncs(dryRun bool) missioncontrol.Funcs {
 	dispatchFn := func() (string, error) {
 		result, err := runDispatchCycle(dryRun)
 		if err != nil {
@@ -110,13 +111,13 @@ func buildHeartbeatFuncs(dryRun bool) heartbeat.Funcs {
 		return fmt.Sprintf("reaped %d worker(s)", reaped), nil
 	}
 
-	return heartbeat.Funcs{
+	return missioncontrol.Funcs{
 		Dispatch: dispatchFn,
 		Reap:     reapFn,
 	}
 }
 
-func printCycleResult(cmd *cobra.Command, result *heartbeat.CycleResult) {
+func printCycleResult(cmd *cobra.Command, result *missioncontrol.CycleResult) {
 	if result.DispatchErr != nil {
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "dispatch error: %v\n", result.DispatchErr)
 	} else {

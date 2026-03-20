@@ -10,10 +10,15 @@ import (
 // DefaultSessionName is the tmux session name used by Rocket Fuel.
 const DefaultSessionName = "rocket-fuel"
 
-// Windows defines the tmux windows created for a Rocket Fuel session.
-var Windows = []string{"integrator", "heartbeat", "dashboard"}
+// Window names for the Rocket Fuel session.
+const (
+	WindowIntegrator  = "integrator"
+	WindowMissionCtrl = "mission-control"
+)
 
-// Setup creates the Rocket Fuel tmux session with all agent windows.
+// Setup creates the Rocket Fuel tmux session.
+// Window 0 is renamed to "integrator" (no orphan window).
+// A background "mission-control" window is created for the mission control loop.
 // Returns true if a new session was created, false if one already existed.
 func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	if tm.HasSession(sessionName) {
@@ -24,16 +29,19 @@ func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 		return false, fmt.Errorf("create session: %w", err)
 	}
 
-	for _, win := range Windows {
-		if err := tm.NewWindow(sessionName, win); err != nil {
-			// Clean up on partial failure.
-			_ = tm.KillSession(sessionName)
-			return false, fmt.Errorf("create window %q: %w", win, err)
-		}
+	// Rename the default window (window 0) to "integrator".
+	if cli, ok := tm.(*tmux.CLI); ok {
+		_ = cli.RenameWindow(sessionName, "0", WindowIntegrator)
 	}
 
-	// Switch back to the first window (integrator).
-	if err := tm.SelectWindow(sessionName, Windows[0]); err != nil {
+	// Create the mission-control window for the mission control loop.
+	if err := tm.NewWindow(sessionName, WindowMissionCtrl); err != nil {
+		_ = tm.KillSession(sessionName)
+		return false, fmt.Errorf("create window %q: %w", WindowMissionCtrl, err)
+	}
+
+	// Select the integrator window so user lands there.
+	if err := tm.SelectWindow(sessionName, WindowIntegrator); err != nil {
 		return true, fmt.Errorf("select window: %w", err)
 	}
 

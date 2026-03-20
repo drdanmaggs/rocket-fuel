@@ -1,6 +1,6 @@
 // Package heartbeat provides the periodic dispatch + reap loop.
 // The dumb, reliable background process — no AI, no decisions.
-package heartbeat
+package missioncontrol
 
 import (
 	"context"
