@@ -16,9 +16,9 @@ const (
 	WindowMissionCtrl = "mission-control"
 )
 
-// Setup creates the Rocket Fuel tmux session.
-// Window 0 is renamed to "integrator" (no orphan window).
-// A background "mission-control" window is created for the mission control loop.
+// Setup creates the Rocket Fuel tmux session with a single "integrator" window.
+// The mission-control window should be created AFTER tmux -CC attachment
+// so iTerm2 renders it as a tab (not a separate window).
 // Returns true if a new session was created, false if one already existed.
 func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	if tm.HasSession(sessionName) {
@@ -32,17 +32,6 @@ func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	// Rename the default window (window 0) to "integrator".
 	if cli, ok := tm.(*tmux.CLI); ok {
 		_ = cli.RenameWindow(sessionName, "0", WindowIntegrator)
-	}
-
-	// Create the mission-control window for the mission control loop.
-	if err := tm.NewWindow(sessionName, WindowMissionCtrl); err != nil {
-		_ = tm.KillSession(sessionName)
-		return false, fmt.Errorf("create window %q: %w", WindowMissionCtrl, err)
-	}
-
-	// Select the integrator window so user lands there.
-	if err := tm.SelectWindow(sessionName, WindowIntegrator); err != nil {
-		return true, fmt.Errorf("select window: %w", err)
 	}
 
 	return true, nil
