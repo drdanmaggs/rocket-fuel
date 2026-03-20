@@ -100,6 +100,18 @@ func (c *CLI) AttachCC(session string) error {
 	return syscall.Exec(tmuxPath, args, os.Environ())
 }
 
+// ListSessions returns the names of all tmux sessions.
+func (c *CLI) ListSessions() []string {
+	out, err := c.output("list-sessions", "-F", "#{session_name}")
+	if err != nil {
+		return nil
+	}
+	if out == "" {
+		return nil
+	}
+	return strings.Split(out, "\n")
+}
+
 // RenameWindow changes the name of a window in a session.
 // Target can be a window name or index (e.g., "0" for the first window).
 func (c *CLI) RenameWindow(session, target, newName string) error {
