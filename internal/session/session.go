@@ -10,15 +10,16 @@ import (
 // DefaultSessionName is the tmux session name used by Rocket Fuel.
 const DefaultSessionName = "rocket-fuel"
 
-// Window names for the Rocket Fuel session.
+// MissionControlSession is the separate tmux session for mission control.
+const MissionControlSession = "rf-mission-control"
+
+// Window names.
 const (
 	WindowIntegrator  = "integrator"
 	WindowMissionCtrl = "mission-control"
 )
 
 // Setup creates the Rocket Fuel tmux session with a single "integrator" window.
-// The mission-control window should be created AFTER tmux -CC attachment
-// so iTerm2 renders it as a tab (not a separate window).
 // Returns true if a new session was created, false if one already existed.
 func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	if tm.HasSession(sessionName) {
@@ -35,4 +36,42 @@ func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+// SetupMissionControl creates a separate detached tmux session for mission control.
+// Returns true if created, false if already running.
+func SetupMissionControl(tm tmux.Runner) (bool, error) {
+	if tm.HasSession(MissionControlSession) {
+		return false, nil
+	}
+
+	if err := tm.NewSession(MissionControlSession); err != nil {
+		return false, fmt.Errorf("create mission control session: %w", err)
+	}
+
+	// Rename window 0.
+	if cli, ok := tm.(*tmux.CLI); ok {
+		_ = cli.RenameWindow(MissionControlSession, "0", WindowMissionCtrl)
+	}
+
+	return true, nil
+}
+
+// TeardownAll kills both the main session and mission control.
+func TeardownAll(tm tmux.Runner, sessionName string) (bool, error) {
+	killed := false
+
+	if tm.HasSession(MissionControlSession) {
+		_ = tm.KillSession(MissionControlSession)
+		killed = true
+	}
+
+	if tm.HasSession(sessionName) {
+		if err := tm.KillSession(sessionName); err != nil {
+			return killed, fmt.Errorf("kill session: %w", err)
+		}
+		killed = true
+	}
+
+	return killed, nil
 }
