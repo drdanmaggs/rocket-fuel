@@ -1,7 +1,7 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 LDFLAGS := -ldflags "-X github.com/drdanmaggs/rocket-fuel/cmd.Version=$(VERSION)"
 
-.PHONY: build install test lint fmt fmt-check clean all
+.PHONY: build install test test-unit test-integration lint fmt fmt-check clean all
 
 build:
 	go build $(LDFLAGS) -o bin/rocket-fuel .
@@ -11,6 +11,12 @@ install:
 
 test:
 	go test -race ./...
+
+test-unit:
+	go test -race -count=1 ./...
+
+test-integration:
+	go test -race -tags=integration ./...
 
 lint:
 	golangci-lint run ./...
