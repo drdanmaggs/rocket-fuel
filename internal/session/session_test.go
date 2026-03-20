@@ -61,6 +61,11 @@ func (m *mockRunner) AttachCC(_ string) error {
 	return nil
 }
 
+func (m *mockRunner) SendKeys(session, window, keys string) error {
+	m.calls = append(m.calls, "SendKeys:"+session+":"+window+":"+keys)
+	return nil
+}
+
 var errMock = &mockError{}
 
 type mockError struct{}

@@ -52,7 +52,8 @@ func (m *mockTmuxRunner) KillSession(name string) error {
 	return nil
 }
 
-func (m *mockTmuxRunner) AttachCC(_ string) error { return nil }
+func (m *mockTmuxRunner) AttachCC(_ string) error              { return nil }
+func (m *mockTmuxRunner) SendKeys(_, _, _ string) error        { return nil }
 
 type mockSelectError struct{}
 
