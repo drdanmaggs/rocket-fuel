@@ -89,8 +89,9 @@ func WritePrimeContext(repoDir string, input *prime.Input) (string, error) {
 }
 
 // IntegratorCommand returns the claude launch command for the integrator window.
+// Includes an initial prompt so Claude acts immediately on the injected context.
 func IntegratorCommand() string {
-	return "claude --dangerously-skip-permissions"
+	return `claude --dangerously-skip-permissions "You are the Integrator. Your context has been loaded via the SessionStart hook. Review the board state and act on your startup instructions immediately."`
 }
 
 // shellQuote wraps a string in single quotes, escaping any embedded single quotes.
