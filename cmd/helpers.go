@@ -24,7 +24,7 @@ func repoRoot() (string, error) {
 }
 
 // runDispatchCycle executes one dispatch cycle: fetch board, check capacity, spawn.
-// Used by both the dispatch command and the heartbeat loop.
+// Used by both the dispatch command and the mission control loop.
 func runDispatchCycle(dryRun bool) (*dispatch.Result, error) {
 	repoDir, err := repoRoot()
 	if err != nil {

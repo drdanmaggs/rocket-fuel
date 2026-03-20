@@ -50,8 +50,8 @@ func runUp(cmd *cobra.Command, _ []string) error {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", launchErr)
 		}
 
-		// Launch mission control (heartbeat loop) in background window.
-		if err := tm.SendKeys(sessionName, session.WindowMissionCtrl, "rf heartbeat --loop"); err != nil {
+		// Launch mission control in background window.
+		if err := tm.SendKeys(sessionName, session.WindowMissionCtrl, "rf mission-control --loop"); err != nil {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch mission control: %v\n", err)
 		}
 
