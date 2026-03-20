@@ -23,6 +23,10 @@ func (m *mockTmuxRunner) HasSession(name string) bool {
 	return m.sessions[name]
 }
 
+func (m *mockTmuxRunner) HasWindow(session, window string) bool {
+	return m.windows[session] != nil && m.windows[session][window]
+}
+
 func (m *mockTmuxRunner) NewSession(name string) error {
 	m.sessions[name] = true
 	if m.windows[name] == nil {
