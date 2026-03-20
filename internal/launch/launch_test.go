@@ -48,7 +48,20 @@ func TestIntegratorCommand_includesPromptFile(t *testing.T) {
 
 	cmd := IntegratorCommand("/tmp/context.md")
 
-	if cmd != "claude --prompt-file /tmp/context.md" {
+	if cmd != "claude --prompt-file '/tmp/context.md'" {
 		t.Errorf("unexpected command: %q", cmd)
+	}
+}
+
+func TestIntegratorCommand_quotesPathWithSpaces(t *testing.T) {
+	t.Parallel()
+
+	cmd := IntegratorCommand("/home/user/my projects/.rocket-fuel/integrator-context.md")
+
+	if !strings.Contains(cmd, "'") {
+		t.Errorf("expected quoted path for spaces, got: %q", cmd)
+	}
+	if !strings.Contains(cmd, "my projects") {
+		t.Errorf("expected full path preserved, got: %q", cmd)
 	}
 }
