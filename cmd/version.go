@@ -13,7 +13,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of Rocket Fuel",
 	Run: func(cmd *cobra.Command, _ []string) {
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "rocket-fuel %s\n", Version)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "rf %s\n", Version)
 	},
 }
 

@@ -10,8 +10,8 @@ func TestRunBinaryVersion(t *testing.T) {
 
 	out := RunBinary(t, "version")
 
-	if !strings.HasPrefix(out, "rocket-fuel") {
-		t.Errorf("expected output to start with 'rocket-fuel', got %q", out)
+	if !strings.HasPrefix(out, "rf") {
+		t.Errorf("expected output to start with 'rf', got %q", out)
 	}
 }
 
