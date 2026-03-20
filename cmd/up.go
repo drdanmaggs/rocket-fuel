@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"syscall"
 
@@ -20,10 +22,10 @@ import (
 var upCmd = &cobra.Command{
 	Use:   "launch",
 	Short: "Start the Rocket Fuel tmux session",
-	Long: `Creates a tmux session with Integrator and Dashboard windows,
-launches Claude Code in the Integrator tab with full project context,
-then attaches in control mode (-CC) so iTerm2 renders them as native tabs.
+	Long: `Creates a tmux session, launches Claude Code in the Integrator tab,
+then attaches in control mode (-CC) so iTerm2 renders native tabs.
 
+Mission control starts as a background tab after attachment.
 If a session already exists, attaches to it without relaunching.`,
 	RunE: runUp,
 }
@@ -61,10 +63,10 @@ func runUp(cmd *cobra.Command, _ []string) error {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", launchErr)
 		}
 
-		// Launch mission control in background window.
-		if err := tm.SendKeys(sessionName, session.WindowMissionCtrl, "rf mission-control --loop"); err != nil {
-			_, _ = fmt.Fprintf(out, "  Warning: could not launch mission control: %v\n", err)
-		}
+		// Start a background process that creates mission-control AFTER
+		// tmux -CC attaches. This ensures iTerm2 sees the window creation
+		// as a live event and renders it as a tab, not a separate window.
+		spawnPostAttachSetup(sessionName)
 
 		_, _ = fmt.Fprintln(out)
 	} else {
@@ -83,6 +85,24 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	}
 
 	return nil
+}
+
+// spawnPostAttachSetup starts a detached background process that waits for -CC
+// attachment, then creates the mission-control window and launches heartbeat.
+// This must be a separate process because syscall.Exec replaces the current one.
+func spawnPostAttachSetup(sessionName string) {
+	// Shell script that waits for -CC to attach, then creates the window.
+	script := fmt.Sprintf(
+		`sleep 2 && tmux new-window -t %s -n %s && tmux send-keys -t %s:%s 'rf mission-control --loop' Enter && tmux select-window -t %s:%s`,
+		sessionName, session.WindowMissionCtrl,
+		sessionName, session.WindowMissionCtrl,
+		sessionName, session.WindowIntegrator,
+	)
+
+	cmd := exec.CommandContext(context.Background(), "bash", "-c", script)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true} // Detach from parent process.
+	_ = cmd.Start()
+	// Don't wait — this runs in the background after exec replaces us.
 }
 
 func printLaunchBanner(w io.Writer) {
