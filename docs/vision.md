@@ -12,17 +12,26 @@ Inspired by [gastown](https://github.com/steveyegge/gastown) (Steve Yegge's mult
 
 From *Rocket Fuel* by Gino Wickman & Mark C. Winters. Every high-performing company has two leaders:
 
-### The Visionary (You)
+### The Visionary (You — the human)
 
-The ideas person. Sets direction, thinks about product, users, architecture. Lives in their main Claude Code tab — collaborating with a Visionary agent on scoping, strategy, and creative problem-solving.
+The ideas person. Sets direction, thinks about product, users, architecture. The Visionary is not an AI agent — it's you. You talk directly to the Integrator. That's your main interface.
 
-But the Visionary isn't just a delegator. Like Elon on the factory floor, the Visionary can jump into any worker tab and get hands-on with the engineering. The Visionary has full access to every tab and can take over any workstream.
+But the Visionary isn't just a delegator. Like Elon on the factory floor, the Visionary can jump into any worker tab and get hands-on with the engineering. Full access to every tab, can take over any workstream.
 
-### The Integrator (Autonomous AI Agent)
+The Visionary is also inherently destabilising. New ideas, pivots, "what if we..." — this energy is valuable but dangerous to in-flight work. The Integrator's job is to harness it without letting it derail progress.
 
-The person who gets shit done. Runs autonomously — you don't interact with it. It manages the GitHub Project board, spawns workers, monitors CI, tracks progress against milestones, and keeps the machine running.
+### The Integrator (AI Agent — your main interface)
 
-The Integrator's only communication to the Visionary is **surfacing a tab** — bringing an iTerm2 tab to the foreground when something needs the Visionary's attention. No chat interface. No status reports to read. Just "this needs you" → tab appears → context is there.
+The person who gets shit done. You talk to the Integrator. It manages the GitHub Project board, spawns workers, monitors CI, tracks progress against milestones, and keeps the machine running.
+
+**The Integrator never says no.** When the Visionary has an idea mid-sprint, the Integrator:
+1. **Indulges it** — scopes it properly, creates a well-documented GitHub issue
+2. **Parks it** — files it in the Someday/Maybe column on the project board
+3. **Protects the current sprint** — "Great, it's captured. Now, back to the epic."
+
+The idea never gets lost (which would frustrate the Visionary), but it never derails current work either. Both sides happy.
+
+The Integrator also surfaces tabs when something needs the Visionary's hands — bringing an iTerm2 tab to the foreground with the context already there.
 
 ### Workers (Ephemeral AI Agents)
 
@@ -33,19 +42,25 @@ Claude Code instances running in isolated git worktrees. Each worker picks up a 
 ```
 ┌──────────────────────────────────────────────────────────┐
 │  iTerm2 (tmux -CC = native tabs per agent)               │
-├───────────────┬──────────────┬───────────┬───────────────┤
-│  Visionary    │  Integrator  │ Worker α  │  Worker β     │
-│  (you live    │  (autonomous │ (spawned  │  (surfaced    │
-│   here)       │   — no       │  by intg) │   for you     │
-│               │   interaction│           │   when needed)│
-└───────────────┴──────┬───────┴───────────┴───────────────┘
-                       │
-            ┌──────────┴──────────┐
-            │  GitHub Projects    │
-            │  (Integrator's      │
-            │   brain — single    │
-            │   source of truth)  │
-            └─────────────────────┘
+├───────────────┬───────────┬───────────┬──────────────────┤
+│  Integrator   │ Worker α  │ Worker β  │  Dashboard       │
+│  (you talk    │ (spawned  │ (spawned  │  (status)        │
+│   to this)    │  by intg) │  by intg) │                  │
+└───────┬───────┴───────────┴───────────┴──────────────────┘
+        │
+        │  Visionary (you) ←→ Integrator (AI)
+        │  "What if we added X?"
+        │  "Great idea. Scoped it, filed it in Someday/Maybe.
+        │   Now — worker alpha just opened a PR on #42."
+        │
+        ▼
+┌─────────────────────────────────────────┐
+│  GitHub Projects                        │
+│  (Integrator's brain)                   │
+│                                         │
+│  Someday/Maybe → Backlog → Scoped →     │
+│  In Progress → Review → Done            │
+└─────────────────────────────────────────┘
 ```
 
 ### Why tmux -CC?
@@ -61,7 +76,7 @@ tmux control mode (`-CC`) maps tmux sessions/windows to native iTerm2 tabs. This
 
 The Integrator's state is a GitHub Project board. No hidden state. Everything visible in the GitHub web UI too.
 
-- **Columns:** Backlog → Scoped → In Progress → Review → Done
+- **Columns:** Someday/Maybe → Backlog → Scoped → In Progress → Review → Done
 - **Labels:** Skill routing (`workflow:tdd`, `workflow:bug-fix`, `workflow:epc`)
 - **Milestones:** Time-boxing and velocity tracking
 - **Automation:** Issue closed → card moves to Done
@@ -83,7 +98,7 @@ Skills (`/tdd`, `/issue-scope`, `/epc`, `/bug-fix`, `/ship`, `/pr-quality`) are 
 
 - **Not a platform.** It's ~1000 lines of glue, not 371K lines of infrastructure.
 - **Not gastown-lite.** Different philosophy entirely. No beads, no Dolt, no daemons, no custom merge queues, no federation.
-- **Not a task runner.** The Visionary/Integrator dynamic creates natural tension between ideas and execution.
+- **Not a task runner.** The Visionary/Integrator dynamic creates natural tension between ideas and execution. The Integrator protects progress from the Visionary's destabilising energy while never losing an idea.
 - **Not a web app.** It's a CLI + tmux. The "UI" is iTerm2.
 
 ## Prior Art
