@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -125,14 +127,66 @@ func loadProjectConfig() (*project.Config, error) {
 	}
 
 	data, err := os.ReadFile(filepath.Join(dir, "project.json"))
+	if err == nil {
+		var cfg project.Config
+		if parseErr := json.Unmarshal(data, &cfg); parseErr == nil {
+			return &cfg, nil
+		}
+	}
+
+	// No config file — try auto-discovery from GitHub.
+	cfg, discoverErr := discoverAndSaveProject()
+	if discoverErr != nil {
+		return nil, fmt.Errorf("no project linked and auto-discovery failed: %w", discoverErr)
+	}
+	return cfg, nil
+}
+
+func discoverAndSaveProject() (*project.Config, error) {
+	owner, repo, err := repoOwnerAndName()
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg project.Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, err
+	// Try discover first.
+	cfg, err := project.Discover(ghRunner, owner, repo)
+	if err != nil {
+		// No existing project — create one.
+		fmt.Fprintf(os.Stderr, "No GitHub Project found for %s/%s — creating one...\n", owner, repo)
+		cfg, err = project.Create(ghRunner, owner, repo)
+		if err != nil {
+			return nil, fmt.Errorf("auto-create project failed: %w", err)
+		}
+		fmt.Fprintf(os.Stderr, "Created project #%d for %s/%s\n", cfg.ProjectNumber, owner, repo)
+	} else {
+		fmt.Fprintf(os.Stderr, "Auto-discovered project #%d for %s/%s\n", cfg.ProjectNumber, owner, repo)
 	}
 
-	return &cfg, nil
+	// Save for next time.
+	if saveErr := saveProjectConfig(*cfg); saveErr != nil {
+		fmt.Fprintf(os.Stderr, "warning: could not save project config: %v\n", saveErr)
+	}
+
+	return cfg, nil
+}
+
+func repoOwnerAndName() (string, string, error) {
+	out, err := exec.CommandContext(context.Background(),
+		"gh", "repo", "view", "--json", "owner,name",
+	).Output()
+	if err != nil {
+		return "", "", fmt.Errorf("detect repo: %w", err)
+	}
+
+	var repo struct {
+		Owner struct {
+			Login string `json:"login"`
+		} `json:"owner"`
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(out, &repo); err != nil {
+		return "", "", fmt.Errorf("parse repo info: %w", err)
+	}
+
+	return repo.Owner.Login, repo.Name, nil
 }
