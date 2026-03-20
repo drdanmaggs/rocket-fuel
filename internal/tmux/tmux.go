@@ -19,6 +19,7 @@ type Runner interface {
 	SelectWindow(session, window string) error
 	KillSession(name string) error
 	AttachCC(session string) error
+	SendKeys(session, window, keys string) error
 }
 
 // CLI implements Runner by calling the real tmux binary.

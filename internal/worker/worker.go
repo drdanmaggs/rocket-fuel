@@ -100,13 +100,7 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 }
 
 func tmuxSendKeys(tm tmux.Runner, session, window, keys string) error {
-	// SendKeys isn't on the Runner interface yet — use the CLI directly for now.
-	cli, ok := tm.(*tmux.CLI)
-	if !ok {
-		// For testing, this is a no-op — we verify the worktree and window creation.
-		return nil
-	}
-	return cli.SendKeys(session, window, keys)
+	return tm.SendKeys(session, window, keys)
 }
 
 func shellQuote(s string) string {

@@ -23,7 +23,8 @@ func (m *mockRunner) HasSession(name string) bool { return m.sessions[name] }
 func (m *mockRunner) NewSession(_ string) error   { return nil }
 func (m *mockRunner) NewWindow(_, _ string) error { return nil }
 func (m *mockRunner) KillSession(_ string) error  { return nil }
-func (m *mockRunner) AttachCC(_ string) error     { return nil }
+func (m *mockRunner) AttachCC(_ string) error              { return nil }
+func (m *mockRunner) SendKeys(_, _, _ string) error        { return nil }
 
 func (m *mockRunner) SelectWindow(session, window string) error {
 	if m.windows[session] != nil && m.windows[session][window] {
