@@ -18,7 +18,7 @@ func TestRun_nothingToDispatchWhenNoScopedItems(t *testing.T) {
 	}
 
 	result, err := Run(Config{MaxWorkers: 3}, Deps{
-		Board:        board,
+		Board:         board,
 		ActiveWorkers: 0,
 	})
 	if err != nil {

@@ -174,7 +174,7 @@ func TestBuild_fullAssemblyOrdersCorrectly(t *testing.T) {
 	if promptIdx < 0 || boardIdx < 0 || workersIdx < 0 || repoIdx < 0 {
 		t.Fatalf("missing section(s) in output:\n%s", got)
 	}
-	if !(promptIdx < boardIdx && boardIdx < workersIdx && workersIdx < repoIdx) {
+	if promptIdx >= boardIdx || boardIdx >= workersIdx || workersIdx >= repoIdx {
 		t.Errorf("sections out of order: prompt=%d board=%d workers=%d repo=%d",
 			promptIdx, boardIdx, workersIdx, repoIdx)
 	}
