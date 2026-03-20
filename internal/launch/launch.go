@@ -2,6 +2,7 @@
 package launch
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,13 +11,66 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/prime"
 )
 
-// WindowCommand pairs a window name with the command to run in it.
-type WindowCommand struct {
-	Window  string
-	Command string
+// EnsureClaudeSettings creates or updates .claude/settings.json in the project
+// with the SessionStart hook that runs rf prime. This is how the Integrator
+// gets its context — same pattern as gastown's gt prime --hook.
+func EnsureClaudeSettings(repoDir string) error {
+	claudeDir := filepath.Join(repoDir, ".claude")
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
+		return fmt.Errorf("create .claude dir: %w", err)
+	}
+
+	settingsPath := filepath.Join(claudeDir, "settings.json")
+
+	// Read existing settings if they exist.
+	settings := make(map[string]interface{})
+	if data, err := os.ReadFile(settingsPath); err == nil {
+		_ = json.Unmarshal(data, &settings)
+	}
+
+	// Ensure hooks exist.
+	hooks, _ := settings["hooks"].(map[string]interface{})
+	if hooks == nil {
+		hooks = make(map[string]interface{})
+	}
+
+	// Set SessionStart hook to run rf prime.
+	hooks["SessionStart"] = []map[string]interface{}{
+		{
+			"matcher": "",
+			"hooks": []map[string]interface{}{
+				{
+					"type":    "command",
+					"command": fmt.Sprintf("export PATH=\"$HOME/go/bin:$PATH\" && rf prime"),
+				},
+			},
+		},
+	}
+
+	// Set PreCompact hook to re-inject context after compression.
+	hooks["PreCompact"] = []map[string]interface{}{
+		{
+			"matcher": "",
+			"hooks": []map[string]interface{}{
+				{
+					"type":    "command",
+					"command": fmt.Sprintf("export PATH=\"$HOME/go/bin:$PATH\" && rf prime"),
+				},
+			},
+		},
+	}
+
+	settings["hooks"] = hooks
+
+	data, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal settings: %w", err)
+	}
+
+	return os.WriteFile(settingsPath, data, 0o644)
 }
 
-// WritePrimeContext writes the prime context to a file for claude --system-prompt.
+// WritePrimeContext writes the prime context to a file.
 // Returns the file path.
 func WritePrimeContext(repoDir string, input *prime.Input) (string, error) {
 	dir := filepath.Join(repoDir, ".rocket-fuel")
@@ -35,9 +89,8 @@ func WritePrimeContext(repoDir string, input *prime.Input) (string, error) {
 }
 
 // IntegratorCommand returns the claude launch command for the integrator window.
-// Uses --system-prompt with $(cat <file>) to load the context from disk.
-func IntegratorCommand(contextFilePath string) string {
-	return fmt.Sprintf("claude --system-prompt \"$(cat %s)\"", shellQuote(contextFilePath))
+func IntegratorCommand() string {
+	return "claude --dangerously-skip-permissions"
 }
 
 // shellQuote wraps a string in single quotes, escaping any embedded single quotes.

@@ -1,6 +1,7 @@
 package launch
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,31 +44,84 @@ func TestWritePrimeContext_createsFile(t *testing.T) {
 	}
 }
 
-func TestIntegratorCommand_usesSystemPrompt(t *testing.T) {
+func TestIntegratorCommand_usesDangerouslySkipPermissions(t *testing.T) {
 	t.Parallel()
 
-	cmd := IntegratorCommand("/tmp/context.md")
+	cmd := IntegratorCommand()
 
-	if !strings.Contains(cmd, "--system-prompt") {
-		t.Errorf("expected --system-prompt flag, got: %q", cmd)
+	if !strings.Contains(cmd, "claude") {
+		t.Errorf("expected claude command, got: %q", cmd)
 	}
-	if !strings.Contains(cmd, "$(cat") {
-		t.Errorf("expected $(cat ...) to read file, got: %q", cmd)
-	}
-	if !strings.Contains(cmd, "/tmp/context.md") {
-		t.Errorf("expected file path in command, got: %q", cmd)
+	if !strings.Contains(cmd, "--dangerously-skip-permissions") {
+		t.Errorf("expected --dangerously-skip-permissions, got: %q", cmd)
 	}
 }
 
-func TestIntegratorCommand_quotesPathWithSpaces(t *testing.T) {
+func TestEnsureClaudeSettings_createsSettingsFile(t *testing.T) {
 	t.Parallel()
 
-	cmd := IntegratorCommand("/home/user/my projects/.rocket-fuel/integrator-context.md")
-
-	if !strings.Contains(cmd, "'") {
-		t.Errorf("expected quoted path for spaces, got: %q", cmd)
+	dir := t.TempDir()
+	err := EnsureClaudeSettings(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-	if !strings.Contains(cmd, "my projects") {
-		t.Errorf("expected full path preserved, got: %q", cmd)
+
+	data, err := os.ReadFile(filepath.Join(dir, ".claude", "settings.json"))
+	if err != nil {
+		t.Fatalf("settings file not created: %v", err)
+	}
+
+	var settings map[string]interface{}
+	if err := json.Unmarshal(data, &settings); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+
+	// Verify SessionStart hook exists with rf prime.
+	hooks, ok := settings["hooks"].(map[string]interface{})
+	if !ok {
+		t.Fatal("expected hooks in settings")
+	}
+
+	sessionStart, ok := hooks["SessionStart"]
+	if !ok {
+		t.Fatal("expected SessionStart hook")
+	}
+
+	raw, _ := json.Marshal(sessionStart)
+	if !strings.Contains(string(raw), "rf prime") {
+		t.Errorf("expected SessionStart hook to contain 'rf prime', got: %s", raw)
+	}
+}
+
+func TestEnsureClaudeSettings_preservesExistingSettings(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+	claudeDir := filepath.Join(dir, ".claude")
+	if err := os.MkdirAll(claudeDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Write existing settings with a custom field.
+	existing := `{"customField": "preserve-me"}`
+	if err := os.WriteFile(filepath.Join(claudeDir, "settings.json"), []byte(existing), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := EnsureClaudeSettings(dir)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(claudeDir, "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(string(data), "preserve-me") {
+		t.Error("expected existing settings to be preserved")
+	}
+	if !strings.Contains(string(data), "rf prime") {
+		t.Error("expected SessionStart hook to be added")
 	}
 }
