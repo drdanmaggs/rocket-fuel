@@ -99,3 +99,49 @@ func TestFoo(t *testing.T) {
 ### RecordingTmux is for orchestration logic only
 
 `RecordingTmux` exists for testing "what commands WOULD be issued" in orchestration logic (e.g., does the Integrator issue the right sequence of tmux commands). It does NOT replace integration tests against real tmux.
+
+## Testing Strategy
+
+### What to test where
+
+| Layer | Type | Tag | What |
+|-------|------|-----|------|
+| Pure logic | Unit | (none) | Routing, prompt building, dashboard rendering, queue ops |
+| tmux operations | Integration | `//go:build integration` | Session/window/pane creation with real tmux |
+| git operations | Unit | (none) | Real git in t.TempDir() — no tag needed |
+| GitHub API | Unit | (none) | GHRunner mocks — inject test doubles |
+| Claude Code | Manual | — | Can't automate Claude in CI |
+
+### Test commands
+
+```bash
+go test -race ./...                              # unit tests only
+go test -race -tags=integration ./...            # unit + integration
+make test                                         # unit (CI fast path)
+make test-integration                            # integration (CI, installs tmux)
+```
+
+### Integration test patterns
+
+All integration tests MUST:
+- Use `//go:build integration` tag
+- Use isolated tmux socket (`testutil.SetupTmuxSocket()` in TestMain)
+- Use `t.Cleanup` for session teardown
+- NOT use `t.Parallel()` (tmux socket is shared per process)
+- Use retry loops for CI (SendKeys needs time to process on slow runners)
+
+### Mock runners must implement full interface
+
+When adding a method to `tmux.Runner`, update ALL mock runners:
+- `internal/session/session_test.go`
+- `internal/status/status_test.go`
+- `internal/worker/reap_test.go`
+- `internal/notify/notify_test.go`
+
+### Lessons learned
+
+- `filepath.Walk` silently fails when hidden-dir skipping interacts with traversal — use `ReadDir` for explicit control
+- `SelectWindow` has side effects (switches active tab) — use `HasWindow` for existence checks
+- Mock runners hide real-world side effects — always pair unit tests with integration tests for tmux operations
+- CI runners are slower — use retry loops for timing-dependent assertions (e.g., SendKeys → capture-pane)
+- Always run with `-race` flag
