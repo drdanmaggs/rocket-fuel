@@ -19,13 +19,17 @@ type ReapResult struct {
 	Reason      string
 }
 
+// ReapConfig controls the behaviour of the Reap function.
+type ReapConfig struct {
+	DryRun bool
+}
+
 // Reap finds completed workers and cleans up their worktrees and tmux windows.
 // A worker is considered complete when its tmux window no longer exists
 // in the main session (Claude Code session ended).
-// If dryRun is true, reports what would be reaped without deleting.
-func Reap(tm tmux.Runner, sessionName, repoDir string, dryRun ...bool) ([]ReapResult, error) {
-	isDryRun := len(dryRun) > 0 && dryRun[0]
-	_ = isDryRun // used below
+// If cfg.DryRun is true, reports what would be reaped without deleting.
+func Reap(tm tmux.Runner, sessionName, repoDir string, cfg ReapConfig) ([]ReapResult, error) {
+	isDryRun := cfg.DryRun
 	worktreesDir := filepath.Join(repoDir, ".worktrees")
 
 	entries, err := os.ReadDir(worktreesDir)

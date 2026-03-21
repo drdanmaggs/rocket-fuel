@@ -32,7 +32,7 @@ func runReap(cmd *cobra.Command, _ []string) error {
 	tm := tmux.New()
 	sessionName := session.DefaultSessionName
 
-	results, err := worker.Reap(tm, sessionName, repoDir, dryRun)
+	results, err := worker.Reap(tm, sessionName, repoDir, worker.ReapConfig{DryRun: dryRun})
 	if err != nil {
 		return fmt.Errorf("reap failed: %w", err)
 	}
