@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -153,4 +154,65 @@ func RemoveProject(path string) error {
 	}
 
 	return nil
+}
+
+// DiscoverProjects scans homeDir for git repositories up to 2 levels deep.
+// Skips hidden directories (starting with .), node_modules, and go/pkg.
+// Returns projects sorted by modification time (most recent first).
+func DiscoverProjects(homeDir string) []Project {
+	projects := make(map[string]*Project)
+
+	// Walk up to depth 2: homeDir -> level1 -> level2
+	err := filepath.Walk(homeDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return filepath.SkipDir
+		}
+
+		// Calculate depth relative to homeDir
+		rel, _ := filepath.Rel(homeDir, path)
+		depth := strings.Count(rel, string(filepath.Separator))
+
+		// Skip if we're past depth 2
+		if depth > 2 {
+			return filepath.SkipDir
+		}
+
+		// Skip hidden dirs and special directories
+		base := filepath.Base(path)
+		if strings.HasPrefix(base, ".") || base == "node_modules" || base == "pkg" {
+			return filepath.SkipDir
+		}
+
+		// If this directory has a .git subdirectory, it's a git repo
+		if info.IsDir() {
+			gitPath := filepath.Join(path, ".git")
+			if _, err := os.Stat(gitPath); err == nil {
+				// It's a git repo
+				projects[path] = &Project{
+					Path:     path,
+					Name:     filepath.Base(path),
+					LastUsed: info.ModTime(),
+				}
+				// Don't recurse into git repos
+				return filepath.SkipDir
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return []Project{}
+	}
+
+	// Convert map to slice and sort by LastUsed (most recent first)
+	result := make([]Project, 0, len(projects))
+	for _, p := range projects {
+		result = append(result, *p)
+	}
+
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].LastUsed.After(result[j].LastUsed)
+	})
+
+	return result
 }
