@@ -1,6 +1,6 @@
 // Package missioncontrol provides the periodic dispatch + reap loop.
 // The dumb, reliable background process — no AI, no decisions.
-package missioncontrol
+package watchdog
 
 import (
 	"context"

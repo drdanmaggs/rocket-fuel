@@ -122,8 +122,8 @@ func TestSetupCreatesSession(t *testing.T) {
 	if len(windows) != 1 {
 		t.Errorf("expected 1 additional window (mission-control), got %d: %v", len(windows), windows)
 	}
-	if len(windows) > 0 && windows[0] != WindowMissionCtrl {
-		t.Errorf("expected window %q, got %q", WindowMissionCtrl, windows[0])
+	if len(windows) > 0 && windows[0] != WindowWatchdog {
+		t.Errorf("expected window %q, got %q", WindowWatchdog, windows[0])
 	}
 }
 

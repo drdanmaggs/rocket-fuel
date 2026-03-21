@@ -13,8 +13,8 @@ const DefaultSessionName = "rf-integrator"
 
 // Window names.
 const (
-	WindowIntegrator  = "integrator"
-	WindowMissionCtrl = "mission-control"
+	WindowIntegrator = "integrator"
+	WindowWatchdog   = "watchdog"
 )
 
 // Setup creates the Rocket Fuel tmux session with an "integrator" window
@@ -34,9 +34,9 @@ func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	_ = tm.RenameWindow(sessionName, "0", WindowIntegrator)
 
 	// Create mission-control window.
-	if err := tm.NewWindow(sessionName, WindowMissionCtrl); err != nil {
+	if err := tm.NewWindow(sessionName, WindowWatchdog); err != nil {
 		_ = tm.KillSession(sessionName)
-		return false, fmt.Errorf("create window %q: %w", WindowMissionCtrl, err)
+		return false, fmt.Errorf("create window %q: %w", WindowWatchdog, err)
 	}
 
 	// Select integrator so the Visionary lands there.
