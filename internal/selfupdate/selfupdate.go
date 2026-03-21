@@ -7,7 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
+
+// cmdTimeout is the maximum time for git/go commands during self-update.
+const cmdTimeout = 60 * time.Second
 
 // Result describes what happened during an update check.
 type Result struct {
@@ -63,7 +67,10 @@ func Check(sourceDir, currentVersion, binaryPath string) (*Result, error) {
 }
 
 func gitOutput(dir string, args ...string) (string, error) {
-	cmd := exec.CommandContext(context.Background(), "git", args...)
+	ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
 	out, err := cmd.Output()
 	if err != nil {
@@ -73,13 +80,19 @@ func gitOutput(dir string, args ...string) (string, error) {
 }
 
 func gitRun(dir string, args ...string) error {
-	cmd := exec.CommandContext(context.Background(), "git", args...)
+	ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", args...)
 	cmd.Dir = dir
 	return cmd.Run()
 }
 
 func goBuild(sourceDir, binaryPath string) error {
-	cmd := exec.CommandContext(context.Background(),
+	ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx,
 		"go", "build",
 		"-ldflags", fmt.Sprintf("-s -w -X github.com/drdanmaggs/rocket-fuel/cmd.Version=%s -X github.com/drdanmaggs/rocket-fuel/cmd.SourceDir=%s", shortHead(sourceDir), sourceDir),
 		"-o", binaryPath,

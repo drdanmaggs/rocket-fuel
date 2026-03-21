@@ -156,7 +156,10 @@ func buildReapNudge(r worker.ReapResult) string {
 
 // checkPRForBranch checks if a PR exists for the given branch.
 func checkPRForBranch(branch string) string {
-	out, err := exec.CommandContext(context.Background(),
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx,
 		"gh", "pr", "list", "--head", branch, "--json", "number,title,url", "--limit", "1",
 	).Output()
 	if err != nil {
