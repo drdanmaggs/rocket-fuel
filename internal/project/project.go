@@ -58,7 +58,8 @@ func FetchBoard(run GHRunner, owner string, projectNumber int) (*BoardSummary, e
 	}
 
 	summary := &BoardSummary{
-		Columns: make(map[string][]Item),
+		ProjectTitle: fetchProjectTitle(run, owner, projectNumber),
+		Columns:      make(map[string][]Item),
 	}
 
 	for _, item := range raw.Items {
@@ -133,6 +134,23 @@ func FormatBoard(board *BoardSummary) string {
 	}
 
 	return b.String()
+}
+
+func fetchProjectTitle(run GHRunner, owner string, projectNumber int) string {
+	out, err := run("project", "view", strconv.Itoa(projectNumber),
+		"--owner", owner, "--format", "json",
+	)
+	if err != nil {
+		return ""
+	}
+
+	var proj struct {
+		Title string `json:"title"`
+	}
+	if err := json.Unmarshal(out, &proj); err != nil {
+		return ""
+	}
+	return proj.Title
 }
 
 func isStandardColumn(col string, standard []string) bool {
