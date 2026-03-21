@@ -73,10 +73,11 @@ func TestReapCleansUpCompletedWorkers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// No rf-worker-42 session exists (worker finished).
+	// Session exists but no window for worker-42 (worker finished).
 	tm := newMockTmuxRunner()
+	tm.sessions["rf-integrator"] = true
 
-	results, err := Reap(tm, "rocket-fuel", repoDir)
+	results, err := Reap(tm, "rf-integrator", repoDir)
 	if err != nil {
 		t.Fatalf("Reap failed: %v", err)
 	}
@@ -101,11 +102,12 @@ func TestReapSkipsActiveWorkers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// rf-worker-99 session exists (still active).
+	// Worker-99 window exists in session (still active).
 	tm := newMockTmuxRunner()
-	tm.sessions["rf-worker-99"] = true
+	tm.sessions["rf-integrator"] = true
+	_ = tm.NewWindow("rf-integrator", "worker-99")
 
-	results, err := Reap(tm, "rocket-fuel", repoDir)
+	results, err := Reap(tm, "rf-integrator", repoDir)
 	if err != nil {
 		t.Fatalf("Reap failed: %v", err)
 	}
@@ -118,8 +120,8 @@ func TestReapSkipsActiveWorkers(t *testing.T) {
 	if r.Reaped {
 		t.Error("expected active worker to NOT be reaped")
 	}
-	if r.Reason != "session still active" {
-		t.Errorf("expected reason 'session still active', got %q", r.Reason)
+	if r.Reason != "window still active" {
+		t.Errorf("expected reason 'window still active', got %q", r.Reason)
 	}
 }
 
@@ -129,7 +131,7 @@ func TestReapHandlesNoWorktreesDir(t *testing.T) {
 	repoDir := t.TempDir()
 	tm := newMockTmuxRunner()
 
-	results, err := Reap(tm, "rocket-fuel", repoDir)
+	results, err := Reap(tm, "rf-integrator", repoDir)
 	if err != nil {
 		t.Fatalf("Reap failed: %v", err)
 	}

@@ -46,10 +46,10 @@ func TestGatherWithNoWorkers(t *testing.T) {
 	t.Parallel()
 
 	tm := newMockRunner()
-	tm.sessions["rocket-fuel"] = true
+	tm.sessions["rf-integrator"] = true
 	repoDir := t.TempDir()
 
-	s, err := Gather(tm, "rocket-fuel", repoDir)
+	s, err := Gather(tm, "rf-integrator", repoDir)
 	if err != nil {
 		t.Fatalf("Gather failed: %v", err)
 	}
@@ -77,12 +77,12 @@ func TestGatherWithWorkers(t *testing.T) {
 	}
 
 	tm := newMockRunner()
-	tm.sessions["rocket-fuel"] = true
-	// Worker-1 has its own session (active).
-	tm.sessions["rf-worker-1"] = true
-	// Worker-2 has no session (completed).
+	tm.sessions["rf-integrator"] = true
+	// Worker-1 window exists (active).
+	tm.windows["rf-integrator"] = map[string]bool{"worker-1": true}
+	// Worker-2 has no window (completed).
 
-	s, err := Gather(tm, "rocket-fuel", repoDir)
+	s, err := Gather(tm, "rf-integrator", repoDir)
 	if err != nil {
 		t.Fatalf("Gather failed: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestGatherWithInactiveSession(t *testing.T) {
 	tm := newMockRunner()
 	repoDir := t.TempDir()
 
-	s, err := Gather(tm, "rocket-fuel", repoDir)
+	s, err := Gather(tm, "rf-integrator", repoDir)
 	if err != nil {
 		t.Fatalf("Gather failed: %v", err)
 	}

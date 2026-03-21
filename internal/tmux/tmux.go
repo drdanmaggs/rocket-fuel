@@ -112,6 +112,18 @@ func (c *CLI) ListSessions() []string {
 	return strings.Split(out, "\n")
 }
 
+// ListWindowNames returns the names of all windows in a session.
+func (c *CLI) ListWindowNames(session string) ([]string, error) {
+	out, err := c.output("list-windows", "-t", session, "-F", "#{window_name}")
+	if err != nil {
+		return nil, err
+	}
+	if out == "" {
+		return nil, nil
+	}
+	return strings.Split(out, "\n"), nil
+}
+
 // RenameWindow changes the name of a window in a session.
 // Target can be a window name or index (e.g., "0" for the first window).
 func (c *CLI) RenameWindow(session, target, newName string) error {
