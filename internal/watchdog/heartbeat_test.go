@@ -1,4 +1,4 @@
-package missioncontrol
+package watchdog
 
 import (
 	"context"

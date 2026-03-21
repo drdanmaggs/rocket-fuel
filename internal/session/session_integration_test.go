@@ -51,7 +51,7 @@ func TestSetupCreatesAllWindows_Integration(t *testing.T) {
 	if !contains(windows, "integrator") {
 		t.Errorf("expected 'integrator' window, got: %v", windows)
 	}
-	if !contains(windows, "mission-control") {
+	if !contains(windows, "watchdog") {
 		t.Errorf("expected 'mission-control' window, got: %v", windows)
 	}
 	if len(windows) != 2 {

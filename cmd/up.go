@@ -122,8 +122,8 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		_ = tm.Run("select-pane", "-t", sessionName+":"+session.WindowIntegrator+".0")
 
 		// Launch mission control in its window.
-		if err := tm.SendKeys(sessionName, session.WindowMissionCtrl, "rf mission-control --loop"); err != nil {
-			_, _ = fmt.Fprintf(out, "  Warning: could not launch mission control: %v\n", err)
+		if err := tm.SendKeys(sessionName, session.WindowWatchdog, "rf watchdog --loop"); err != nil {
+			_, _ = fmt.Fprintf(out, "  Warning: could not launch watchdog: %v\n", err)
 		}
 
 		_, _ = fmt.Fprintln(out)
