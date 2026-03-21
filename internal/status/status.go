@@ -112,11 +112,7 @@ func Format(s *Summary) string {
 }
 
 func hasWindowWithPrefix(tm tmux.Runner, session, prefix string) bool {
-	cli, ok := tm.(*tmux.CLI)
-	if !ok {
-		return false
-	}
-	names, err := cli.ListWindowNames(session)
+	names, err := tm.ListWindowNames(session)
 	if err != nil {
 		return false
 	}

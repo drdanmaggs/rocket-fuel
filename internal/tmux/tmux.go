@@ -21,6 +21,10 @@ type Runner interface {
 	KillSession(name string) error
 	AttachCC(session string) error
 	SendKeys(session, window, keys string) error
+	ListWindowNames(session string) ([]string, error)
+	RenameWindow(session, target, newName string) error
+	SplitPane(session, window, direction string, percent int, command string) error
+	Run(args ...string) error
 }
 
 // CLI implements Runner by calling the real tmux binary.
