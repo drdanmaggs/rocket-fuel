@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -35,8 +36,21 @@ func init() {
 	rootCmd.AddCommand(upCmd)
 }
 
+// checkTmux verifies that tmux is installed and available on PATH.
+func checkTmux() error {
+	if _, err := exec.LookPath("tmux"); err != nil {
+		return fmt.Errorf("tmux is required but not installed. Install with: brew install tmux (macOS) or apt install tmux (Linux)")
+	}
+	return nil
+}
+
 func runUp(cmd *cobra.Command, _ []string) error {
 	out := cmd.OutOrStdout()
+
+	// Pre-flight: tmux must be installed.
+	if err := checkTmux(); err != nil {
+		return err
+	}
 
 	// Pre-flight: must be in a git repo.
 	repoDir, err := repoRoot()
