@@ -27,6 +27,8 @@ type Item struct {
 type BoardSummary struct {
 	ProjectTitle string
 	Columns      map[string][]Item
+	Truncated    bool
+	TotalCount   int
 }
 
 // FetchBoard reads the current state of a GitHub Project board.
@@ -60,6 +62,8 @@ func FetchBoard(run GHRunner, owner string, projectNumber int) (*BoardSummary, e
 	summary := &BoardSummary{
 		ProjectTitle: fetchProjectTitle(run, owner, projectNumber),
 		Columns:      make(map[string][]Item),
+		TotalCount:   raw.TotalCount,
+		Truncated:    raw.TotalCount > len(raw.Items),
 	}
 
 	for _, item := range raw.Items {
@@ -110,6 +114,10 @@ func FormatBoard(board *BoardSummary) string {
 
 	_, _ = fmt.Fprintln(&b, "=== Project Board ===")
 	_, _ = fmt.Fprintln(&b)
+
+	if board.Truncated {
+		_, _ = fmt.Fprintf(&b, "WARNING: Board has %d items but only 200 are shown. Some items are hidden.\n\n", board.TotalCount)
+	}
 
 	for _, col := range columnOrder {
 		// Collect items from all board columns that match this canonical name (case-insensitive).
