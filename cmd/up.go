@@ -100,7 +100,7 @@ func printLaunchBanner(w io.Writer) {
 	}
 
 	if cfg, err := loadProjectConfig(); err == nil {
-		if board, fetchErr := project.FetchBoard(cfg.Owner, cfg.ProjectNumber); fetchErr == nil && board.ProjectTitle != "" {
+		if board, fetchErr := project.FetchBoard(ghRunner, cfg.Owner, cfg.ProjectNumber); fetchErr == nil && board.ProjectTitle != "" {
 			_, _ = fmt.Fprintf(w, "  Project: %s (#%d)\n", board.ProjectTitle, cfg.ProjectNumber)
 		} else {
 			_, _ = fmt.Fprintf(w, "  Project: #%d (owner: %s)\n", cfg.ProjectNumber, cfg.Owner)
