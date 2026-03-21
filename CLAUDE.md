@@ -7,7 +7,7 @@ Multi-agent orchestrator: Visionary/Integrator model over tmux-CC, GitHub Projec
 Read `docs/vision.md` for the full concept, `docs/gastown-lessons.md` for prior art analysis.
 
 - **Visionary** = the human. Owns product direction (what/why). Scopes vague issues. Approves merges. Calls meetings.
-- **Integrator** = AI agent (Claude Code, runs continuously). Owns execution (how/when). Manages board, dispatches workers, reviews PRs. Never scopes issues — surfaces vague ones to the Visionary.
+- **Integrator** = AI agent (Claude Code, runs continuously). Owns execution (how/when). Manages board, dispatches workers, reviews PRs. Never scopes issues — surfaces vague ones to the Visionary. Can call meetings when it needs the Visionary's input.
 - **Watchdog** = Go daemon (background). Keeps agents alive, detects stuck workers, reaps completed ones. No decisions — purely mechanical. Event-driven via Claude Code hooks.
 - **Workers** = ephemeral Claude Code instances in git worktrees. Run skills (`/tdd`, `/bug-fix`, `/epc`) on assigned issues. Fully autonomous (GUPP).
 - **Ground Control** = Stream Deck plugin (separate repo: `drdanmaggs/ground-control`). Physical dashboard for the Visionary.
