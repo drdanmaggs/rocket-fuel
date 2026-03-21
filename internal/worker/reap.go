@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
 
@@ -54,7 +55,7 @@ func Reap(tm tmux.Runner, sessionName, repoDir string, cfg ReapConfig) ([]ReapRe
 		// format, so match by issue number prefix.
 		issueNum := strings.TrimPrefix(name, "worker-")
 		windowPrefix := "#" + issueNum + ":"
-		windowExists := tm.HasSession(sessionName) && hasWorkerWindow(tm, sessionName, windowPrefix)
+		windowExists := tm.HasSession(sessionName) && session.HasWindowWithPrefix(tm, sessionName, windowPrefix)
 
 		if windowExists {
 			results = append(results, ReapResult{
@@ -100,20 +101,6 @@ func Reap(tm tmux.Runner, sessionName, repoDir string, cfg ReapConfig) ([]ReapRe
 	}
 
 	return results, nil
-}
-
-// hasWorkerWindow checks if any window in the session starts with the given prefix.
-func hasWorkerWindow(tm tmux.Runner, session, prefix string) bool {
-	names, err := tm.ListWindowNames(session)
-	if err != nil {
-		return false
-	}
-	for _, name := range names {
-		if strings.HasPrefix(name, prefix) {
-			return true
-		}
-	}
-	return false
 }
 
 func removeWorktree(repoDir, worktreeDir string) error {

@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
 
@@ -56,7 +57,7 @@ func Gather(tm tmux.Runner, sessionName, repoDir string) (*Summary, error) {
 		// from worktree dir name (worker-N) to match.
 		issueNum := strings.TrimPrefix(name, "worker-")
 		windowPrefix := "#" + issueNum + ":"
-		windowOpen := s.SessionActive && (tm.HasWindow(sessionName, name) || hasWindowWithPrefix(tm, sessionName, windowPrefix))
+		windowOpen := s.SessionActive && (tm.HasWindow(sessionName, name) || session.HasWindowWithPrefix(tm, sessionName, windowPrefix))
 
 		ws := WorkerStatus{
 			Name:       name,
@@ -109,19 +110,6 @@ func Format(s *Summary) string {
 	}
 
 	return b.String()
-}
-
-func hasWindowWithPrefix(tm tmux.Runner, session, prefix string) bool {
-	names, err := tm.ListWindowNames(session)
-	if err != nil {
-		return false
-	}
-	for _, name := range names {
-		if strings.HasPrefix(name, prefix) {
-			return true
-		}
-	}
-	return false
 }
 
 func worktreeBranch(dir string) string {

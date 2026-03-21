@@ -148,6 +148,33 @@ func TestSetupIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestHasWindowWithPrefixMatchesWorkerNames(t *testing.T) {
+	t.Parallel()
+
+	tm := newMockRunner()
+	tm.sessions["test"] = true
+	tm.windows["test"] = []string{"integrator", "#42: fix bug", "mission-control"}
+
+	if !HasWindowWithPrefix(tm, "test", "#42:") {
+		t.Error("expected HasWindowWithPrefix to find '#42:' prefix")
+	}
+
+	if HasWindowWithPrefix(tm, "test", "#99:") {
+		t.Error("expected HasWindowWithPrefix to NOT find '#99:' prefix")
+	}
+}
+
+func TestHasWindowWithPrefixNoWindows(t *testing.T) {
+	t.Parallel()
+
+	tm := newMockRunner()
+	tm.sessions["empty"] = true
+
+	if HasWindowWithPrefix(tm, "empty", "#42:") {
+		t.Error("expected false when no windows exist")
+	}
+}
+
 func TestSetupCleansUpOnSessionFailure(t *testing.T) {
 	t.Parallel()
 
