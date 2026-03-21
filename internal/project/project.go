@@ -106,13 +106,20 @@ func NextReady(board *BoardSummary) *Item {
 func FormatBoard(board *BoardSummary) string {
 	var b strings.Builder
 
-	columnOrder := []string{"Someday/Maybe", "Backlog", "Ready", "Scoped", "In Progress", "In progress", "Review", "In review", "Done"}
+	columnOrder := []string{"Someday/Maybe", "Backlog", "Ready", "Scoped", "In Progress", "In Review", "Done"}
 
 	_, _ = fmt.Fprintln(&b, "=== Project Board ===")
 	_, _ = fmt.Fprintln(&b)
 
 	for _, col := range columnOrder {
-		items := board.Columns[col]
+		// Collect items from all board columns that match this canonical name (case-insensitive).
+		var items []Item
+		for boardCol, boardItems := range board.Columns {
+			if strings.EqualFold(boardCol, col) {
+				items = append(items, boardItems...)
+			}
+		}
+
 		_, _ = fmt.Fprintf(&b, "%s (%d)\n", col, len(items))
 
 		for _, item := range items {
@@ -160,7 +167,7 @@ func fetchProjectTitle(run GHRunner, owner string, projectNumber int) string {
 
 func isStandardColumn(col string, standard []string) bool {
 	for _, s := range standard {
-		if col == s {
+		if strings.EqualFold(col, s) {
 			return true
 		}
 	}
