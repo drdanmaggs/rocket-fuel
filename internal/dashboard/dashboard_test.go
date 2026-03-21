@@ -10,8 +10,10 @@ import (
 func TestRender_noWorkers(t *testing.T) {
 	t.Parallel()
 
-	s := &status.Summary{SessionActive: true}
-	out := Render(s)
+	data := &DashboardData{
+		Summary: &status.Summary{SessionActive: true},
+	}
+	out := Render(data)
 
 	if !strings.Contains(out, "DASHBOARD") {
 		t.Error("expected DASHBOARD header")
@@ -27,14 +29,16 @@ func TestRender_noWorkers(t *testing.T) {
 func TestRender_withWorkers(t *testing.T) {
 	t.Parallel()
 
-	s := &status.Summary{
-		SessionActive: true,
-		Workers: []status.WorkerStatus{
-			{Name: "worker-42", WindowOpen: true, HasPR: false},
-			{Name: "worker-43", WindowOpen: false, HasPR: true},
+	data := &DashboardData{
+		Summary: &status.Summary{
+			SessionActive: true,
+			Workers: []status.WorkerStatus{
+				{Name: "worker-42", WindowOpen: true, HasPR: false},
+				{Name: "worker-43", WindowOpen: false, HasPR: true},
+			},
 		},
 	}
-	out := Render(s)
+	out := Render(data)
 
 	if !strings.Contains(out, "Workers: 2") {
 		t.Error("expected worker count")

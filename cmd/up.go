@@ -1,14 +1,18 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/launch"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
+	"github.com/drdanmaggs/rocket-fuel/internal/projects"
 	"github.com/drdanmaggs/rocket-fuel/internal/selfupdate"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
@@ -37,7 +41,28 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	// Pre-flight: must be in a git repo.
 	repoDir, err := repoRoot()
 	if err != nil {
-		return fmt.Errorf("not in a git repository — cd into your project first")
+		// Try to load from project registry.
+		reg, regErr := projects.LoadRegistry()
+		if regErr != nil || len(reg) == 0 {
+			return fmt.Errorf("not in a git repository — cd into your project first")
+		}
+
+		// Show available projects and prompt user to pick one.
+		selected, pickErr := pickProject(out, reg)
+		if pickErr != nil {
+			return fmt.Errorf("project selection failed: %w", pickErr)
+		}
+
+		// Change to the selected project directory.
+		if err := os.Chdir(selected.Path); err != nil {
+			return fmt.Errorf("could not cd into %s: %w", selected.Path, err)
+		}
+
+		// Now verify we're in a git repo.
+		repoDir, err = repoRoot()
+		if err != nil {
+			return fmt.Errorf("selected project is not a git repository: %w", err)
+		}
 	}
 
 	// Self-update: check if binary is stale, rebuild if needed.
@@ -84,6 +109,12 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		_, _ = fmt.Fprintf(out, "  Reattaching to existing session\n\n")
 	}
 
+	// Remember this project for future launches.
+	repoName := filepath.Base(repoDir)
+	if err := projects.SaveProject(repoDir, repoName); err != nil {
+		_, _ = fmt.Fprintf(out, "  Warning: could not save project to registry: %v\n", err)
+	}
+
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 	if dryRun {
 		_, _ = fmt.Fprintln(out, "Dry run — not attaching.")
@@ -96,6 +127,35 @@ func runUp(cmd *cobra.Command, _ []string) error {
 	}
 
 	return nil
+}
+
+// pickProject prompts the user to select a project from the registry.
+func pickProject(w io.Writer, registry []projects.Project) (*projects.Project, error) {
+	_, _ = fmt.Fprintln(w, "Rocket Fuel")
+	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprintln(w, "  Recent projects:")
+	_, _ = fmt.Fprintln(w)
+
+	for i, p := range registry {
+		_, _ = fmt.Fprintf(w, "  %d) %s (%s)\n", i+1, p.Name, p.Path)
+	}
+
+	_, _ = fmt.Fprintln(w)
+	_, _ = fmt.Fprint(w, "  Select a project (number): ")
+
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return nil, fmt.Errorf("failed to read input: %w", err)
+	}
+
+	input = strings.TrimSpace(input)
+	choice, err := strconv.Atoi(input)
+	if err != nil || choice < 1 || choice > len(registry) {
+		return nil, fmt.Errorf("invalid selection")
+	}
+
+	return &registry[choice-1], nil
 }
 
 func printLaunchBanner(w io.Writer) {

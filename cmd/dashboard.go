@@ -67,7 +67,18 @@ func renderDashboard(cmd *cobra.Command) {
 		return
 	}
 
+	// Read recent activity log.
+	activityLines := dashboard.ReadActivity(repoDir, 5)
+
+	// Read pending merges.
+	pendingMerges := dashboard.ListPending(repoDir)
+
 	// Clear screen and render.
 	_, _ = fmt.Fprint(cmd.OutOrStdout(), "\033[2J\033[H")
-	_, _ = fmt.Fprint(cmd.OutOrStdout(), dashboard.Render(s))
+	data := &dashboard.DashboardData{
+		Summary:          s,
+		ActivityLog:      activityLines,
+		PendingApprovals: pendingMerges,
+	}
+	_, _ = fmt.Fprint(cmd.OutOrStdout(), dashboard.Render(data))
 }
