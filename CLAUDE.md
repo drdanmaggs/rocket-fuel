@@ -28,8 +28,9 @@ This means:
 
 ## Reference
 
-- gastown (prior art): `~/gastown` — explore for architectural patterns but do NOT copy its complexity. See `docs/gastown-lessons.md` for what to steal vs skip.
-- family-meal-planner-v3: `~/Websites/family-meal-planner-v3` — reference for mature CI, testing, git hygiene patterns (translated from TypeScript to Go).
+- gastown (prior art): `~/.claude/gastown` — explore for architectural patterns but do NOT copy its complexity. See `docs/gastown-lessons.md` for what to steal vs skip.
+- family-meal-planner-v3: `~/family-meal-planner-v3` — reference for mature CI, testing, git hygiene patterns (translated from TypeScript to Go).
+- **ground-control**: `~/ground-control` (repo: `drdanmaggs/ground-control`) — Stream Deck plugin for Rocket Fuel. Physical mission control dashboard. Separate repo (Node.js, Elgato SDK). Rocket Fuel exposes state via `rf streamdeck serve`, ground-control renders it on Stream Deck buttons.
 
 ## Development
 
