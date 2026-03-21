@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -156,12 +155,13 @@ func buildReapNudge(r worker.ReapResult) string {
 
 // checkPRForBranch checks if a PR exists for the given branch.
 func checkPRForBranch(branch string) string {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	return checkPRForBranchWith(ghRunner, branch)
+}
 
-	out, err := exec.CommandContext(ctx,
-		"gh", "pr", "list", "--head", branch, "--json", "number,title,url", "--limit", "1",
-	).Output()
+// checkPRForBranchWith checks for a PR using the provided GHRunner.
+// Extracted for testability — tests inject a mock runner.
+func checkPRForBranchWith(run func(...string) ([]byte, error), branch string) string {
+	out, err := run("pr", "list", "--head", branch, "--json", "number,title,url", "--limit", "1")
 	if err != nil {
 		return ""
 	}
