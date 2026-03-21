@@ -24,8 +24,8 @@ func repoRoot() (string, error) {
 }
 
 // dispatchFailedIssues tracks issues that failed to spawn.
-// Persists across heartbeat cycles to avoid infinite retries.
-var dispatchFailedIssues = make(map[int]bool)
+// Persists across heartbeat cycles. Issues are retried after dispatch.FailRetryTTL expires.
+var dispatchFailedIssues = make(dispatch.FailedIssues)
 
 // runDispatchCycle executes one dispatch cycle: fetch board, check capacity, spawn.
 // Used by both the dispatch command and the mission control loop.
