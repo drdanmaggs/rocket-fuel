@@ -75,7 +75,7 @@ func renderDashboard(cmd *cobra.Command) {
 
 	// Clear screen and render.
 	_, _ = fmt.Fprint(cmd.OutOrStdout(), "\033[2J\033[H")
-	data := &dashboard.DashboardData{
+	data := &dashboard.Data{
 		Summary:          s,
 		ActivityLog:      activityLines,
 		PendingApprovals: pendingMerges,

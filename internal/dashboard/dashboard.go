@@ -8,15 +8,15 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
 )
 
-// DashboardData holds all data needed to render the dashboard.
-type DashboardData struct {
+// Data holds all data needed to render the dashboard.
+type Data struct {
 	Summary          *status.Summary
 	ActivityLog      []string
 	PendingApprovals []PendingMerge
 }
 
 // Render formats the dashboard for a narrow pane (~35 chars).
-func Render(data *DashboardData) string {
+func Render(data *Data) string {
 	var b strings.Builder
 
 	_, _ = fmt.Fprintln(&b, "━━━ DASHBOARD ━━━")
@@ -36,11 +36,9 @@ func Render(data *DashboardData) string {
 	} else {
 		_, _ = fmt.Fprintf(&b, "Workers: %d\n", len(data.Summary.Workers))
 		for _, w := range data.Summary.Workers {
-			icon := "  "
+			icon := "✓ "
 			if w.WindowOpen {
 				icon = "▶ "
-			} else {
-				icon = "✓ "
 			}
 			pr := ""
 			if w.HasPR {

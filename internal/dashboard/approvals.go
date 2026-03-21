@@ -26,7 +26,7 @@ func AddPending(repoDir string, pm PendingMerge) error {
 	}
 
 	// Read existing entries.
-	var existing []PendingMerge
+	existing := make([]PendingMerge, 0, 1)
 	if data, err := os.ReadFile(filePath); err == nil {
 		if err := json.Unmarshal(data, &existing); err != nil {
 			return fmt.Errorf("parse pending merges: %w", err)
