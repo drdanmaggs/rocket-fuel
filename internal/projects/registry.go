@@ -154,3 +154,82 @@ func RemoveProject(path string) error {
 
 	return nil
 }
+
+// DiscoverProjects scans homeDir for git repositories up to 2 levels deep.
+// Skips hidden dirs, node_modules, and pkg. Sorted by mod time (most recent first).
+func DiscoverProjects(homeDir string) []Project {
+	var found []Project
+
+	entries, err := os.ReadDir(homeDir)
+	if err != nil {
+		return nil
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() || isSkippedDir(entry.Name()) {
+			continue
+		}
+
+		dirPath := filepath.Join(homeDir, entry.Name())
+
+		if isGitRepo(dirPath) {
+			info, _ := entry.Info()
+			modTime := time.Time{}
+			if info != nil {
+				modTime = info.ModTime()
+			}
+			found = append(found, Project{
+				Path:     dirPath,
+				Name:     entry.Name(),
+				LastUsed: modTime,
+			})
+			continue
+		}
+
+		// Check one level deeper.
+		subEntries, subErr := os.ReadDir(dirPath)
+		if subErr != nil {
+			continue
+		}
+		for _, sub := range subEntries {
+			if !sub.IsDir() || isSkippedDir(sub.Name()) {
+				continue
+			}
+			subPath := filepath.Join(dirPath, sub.Name())
+			if isGitRepo(subPath) {
+				info, _ := sub.Info()
+				modTime := time.Time{}
+				if info != nil {
+					modTime = info.ModTime()
+				}
+				found = append(found, Project{
+					Path:     subPath,
+					Name:     sub.Name(),
+					LastUsed: modTime,
+				})
+			}
+		}
+	}
+
+	sort.Slice(found, func(i, j int) bool {
+		return found[i].LastUsed.After(found[j].LastUsed)
+	})
+
+	return found
+}
+
+func isGitRepo(dir string) bool {
+	info, err := os.Stat(filepath.Join(dir, ".git"))
+	return err == nil && info.IsDir()
+}
+
+func isSkippedDir(name string) bool {
+	if len(name) > 0 && name[0] == '.' {
+		return true
+	}
+	switch name {
+	case "node_modules", "pkg", "vendor", "dist", "build":
+		return true
+	}
+	return false
+}

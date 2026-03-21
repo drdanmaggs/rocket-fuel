@@ -9,9 +9,13 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
+
+// cmdTimeout is the maximum time for git/gh commands during status gathering.
+const cmdTimeout = 30 * time.Second
 
 // Summary holds the current state of Rocket Fuel.
 type Summary struct {
@@ -129,7 +133,10 @@ func hasWindowWithPrefix(tm tmux.Runner, session, prefix string) bool {
 }
 
 func worktreeBranch(dir string) string {
-	cmd := exec.CommandContext(context.Background(), "git", "branch", "--show-current")
+	ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", "branch", "--show-current")
 	cmd.Dir = dir
 	out, err := cmd.Output()
 	if err != nil {
@@ -139,7 +146,10 @@ func worktreeBranch(dir string) string {
 }
 
 func branchHasPR(branch string) bool {
-	cmd := exec.CommandContext(context.Background(),
+	ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx,
 		"gh", "pr", "list", "--head", branch, "--json", "number", "--limit", "1",
 	)
 	out, err := cmd.Output()

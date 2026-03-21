@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
@@ -125,11 +126,14 @@ func workerWindowName(issue Issue) string {
 	return fmt.Sprintf("#%d: %s", issue.Number, title)
 }
 
+// gitTimeout is the maximum time for git commands during worker operations.
+const gitTimeout = 30 * time.Second
+
 func createWorktree(repoDir, worktreeDir, branchName string) error {
-	cmd := exec.CommandContext(
-		context.Background(),
-		"git", "worktree", "add", "-b", branchName, worktreeDir,
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", "worktree", "add", "-b", branchName, worktreeDir)
 	cmd.Dir = repoDir
 
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -137,10 +141,9 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 		if strings.Contains(string(out), "already exists") {
 			cleanupStaleWorker(repoDir, worktreeDir, branchName)
 			// Retry once.
-			retry := exec.CommandContext(
-				context.Background(),
-				"git", "worktree", "add", "-b", branchName, worktreeDir,
-			)
+			retryCtx, retryCancel := context.WithTimeout(context.Background(), gitTimeout)
+			defer retryCancel()
+			retry := exec.CommandContext(retryCtx, "git", "worktree", "add", "-b", branchName, worktreeDir)
 			retry.Dir = repoDir
 			if retryOut, retryErr := retry.CombinedOutput(); retryErr != nil {
 				return fmt.Errorf("%w\n%s", retryErr, retryOut)
@@ -151,7 +154,9 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 	}
 
 	// Configure git hooks in the new worktree.
-	setup := exec.CommandContext(context.Background(), "make", "setup")
+	setupCtx, setupCancel := context.WithTimeout(context.Background(), gitTimeout)
+	defer setupCancel()
+	setup := exec.CommandContext(setupCtx, "make", "setup")
 	setup.Dir = worktreeDir
 	_ = setup.Run() // best-effort — don't fail spawn if make setup fails
 
@@ -159,8 +164,11 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 }
 
 // cleanupStaleWorker removes a stale worktree and branch from a previous failed spawn.
+// Note: git branch -D force-deletes the local ref. This is safe if the branch was
+// pushed to remote, but loses unpushed local commits from a previous worker run.
 func cleanupStaleWorker(repoDir, worktreeDir, branchName string) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
+	defer cancel()
 
 	// Remove worktree if it exists.
 	remove := exec.CommandContext(ctx, "git", "worktree", "remove", "--force", worktreeDir)

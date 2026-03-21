@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/dispatch"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
@@ -14,9 +15,15 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/worker"
 )
 
+// cmdTimeout is the maximum time for git/gh commands in the cmd layer.
+const cmdTimeout = 30 * time.Second
+
 // repoRoot returns the root directory of the current git repository.
 func repoRoot() (string, error) {
-	out, err := exec.CommandContext(context.Background(), "git", "rev-parse", "--show-toplevel").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx, "git", "rev-parse", "--show-toplevel").Output()
 	if err != nil {
 		return "", fmt.Errorf("not in a git repo: %w", err)
 	}
