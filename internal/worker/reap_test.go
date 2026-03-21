@@ -105,7 +105,7 @@ func TestReapCleansUpCompletedWorkers(t *testing.T) {
 	tm := newMockTmuxRunner()
 	tm.sessions["rf-integrator"] = true
 
-	results, err := Reap(tm, "rf-integrator", repoDir)
+	results, err := Reap(tm, "rf-integrator", repoDir, ReapConfig{})
 	if err != nil {
 		t.Fatalf("Reap failed: %v", err)
 	}
@@ -135,7 +135,7 @@ func TestReapSkipsActiveWorkers(t *testing.T) {
 	tm.sessions["rf-integrator"] = true
 	_ = tm.NewWindow("rf-integrator", "#99: some issue")
 
-	results, err := Reap(tm, "rf-integrator", repoDir)
+	results, err := Reap(tm, "rf-integrator", repoDir, ReapConfig{})
 	if err != nil {
 		t.Fatalf("Reap failed: %v", err)
 	}
@@ -159,12 +159,49 @@ func TestReapHandlesNoWorktreesDir(t *testing.T) {
 	repoDir := t.TempDir()
 	tm := newMockTmuxRunner()
 
-	results, err := Reap(tm, "rf-integrator", repoDir)
+	results, err := Reap(tm, "rf-integrator", repoDir, ReapConfig{})
 	if err != nil {
 		t.Fatalf("Reap failed: %v", err)
 	}
 
 	if results != nil {
 		t.Errorf("expected nil results when no worktrees dir, got %v", results)
+	}
+}
+
+func TestReapDryRunReportsWithoutDeleting(t *testing.T) {
+	t.Parallel()
+
+	repoDir := t.TempDir()
+	worktreesDir := filepath.Join(repoDir, ".worktrees")
+
+	if err := os.MkdirAll(filepath.Join(worktreesDir, "worker-77"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Session exists but no window for worker-77 (worker finished).
+	tm := newMockTmuxRunner()
+	tm.sessions["rf-integrator"] = true
+
+	results, err := Reap(tm, "rf-integrator", repoDir, ReapConfig{DryRun: true})
+	if err != nil {
+		t.Fatalf("Reap failed: %v", err)
+	}
+
+	if len(results) != 1 {
+		t.Fatalf("expected 1 result, got %d", len(results))
+	}
+
+	r := results[0]
+	if r.Reaped {
+		t.Error("expected dry-run to NOT reap")
+	}
+	if r.Reason != "would reap (dry-run)" {
+		t.Errorf("expected reason 'would reap (dry-run)', got %q", r.Reason)
+	}
+
+	// Worktree directory should still exist (not deleted).
+	if _, err := os.Stat(filepath.Join(worktreesDir, "worker-77")); os.IsNotExist(err) {
+		t.Error("expected worktree dir to still exist in dry-run mode")
 	}
 }

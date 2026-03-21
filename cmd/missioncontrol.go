@@ -103,7 +103,7 @@ func buildMissionControlFuncs(dryRun bool) missioncontrol.Funcs {
 		tm := tmux.New()
 		sessionName := session.DefaultSessionName
 
-		results, err := worker.Reap(tm, sessionName, repoDir)
+		results, err := worker.Reap(tm, sessionName, repoDir, worker.ReapConfig{})
 		if err != nil {
 			return "", err
 		}
