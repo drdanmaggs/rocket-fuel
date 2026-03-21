@@ -84,6 +84,11 @@ func FetchBoard(run GHRunner, owner string, projectNumber int) (*BoardSummary, e
 // GitHub's default Kanban uses "Ready". Rocket Fuel docs use "Scoped".
 var readyColumnNames = []string{"Ready", "Scoped"}
 
+// ReadyColumnNames returns the list of column names checked for ready items.
+func ReadyColumnNames() []string {
+	return readyColumnNames
+}
+
 // NextReady returns the highest-priority issue from the ready column.
 // Checks for "Ready" (GitHub default) and "Scoped" (Rocket Fuel convention).
 // Returns nil if no ready issues are available.

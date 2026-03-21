@@ -25,6 +25,7 @@ type Deps struct {
 	ActiveWorkers  int
 	SpawnFunc      SpawnFunc
 	TransitionFunc TransitionFunc
+	FailedIssues   map[int]bool // issues that failed to spawn — skip on retry
 }
 
 // Result describes what happened during a dispatch cycle.
@@ -35,10 +36,10 @@ type Result struct {
 	Reason      string
 }
 
-// Run executes one dispatch cycle: check for Scoped items, check capacity, spawn.
+// Run executes one dispatch cycle: check for Ready items, check capacity, spawn.
 func Run(cfg Config, deps Deps) (*Result, error) {
-	// Check for Scoped items.
-	next := project.NextReady(deps.Board)
+	// Find next ready item, skipping previously failed issues.
+	next := nextDispatchable(deps.Board, deps.FailedIssues)
 	if next == nil {
 		return &Result{Reason: "nothing to dispatch"}, nil
 	}
@@ -53,6 +54,10 @@ func Run(cfg Config, deps Deps) (*Result, error) {
 	// Spawn worker.
 	if deps.SpawnFunc != nil {
 		if err := deps.SpawnFunc(next.Number); err != nil {
+			// Track the failure so we don't retry next cycle.
+			if deps.FailedIssues != nil {
+				deps.FailedIssues[next.Number] = true
+			}
 			return nil, fmt.Errorf("spawn worker for #%d: %w", next.Number, err)
 		}
 	}
@@ -76,4 +81,18 @@ func Run(cfg Config, deps Deps) (*Result, error) {
 		WorkerName:  fmt.Sprintf("worker-%d", next.Number),
 		Reason:      fmt.Sprintf("dispatched #%d", next.Number),
 	}, nil
+}
+
+// nextDispatchable returns the first Ready item that hasn't previously failed.
+func nextDispatchable(board *project.BoardSummary, failed map[int]bool) *project.Item {
+	for _, name := range project.ReadyColumnNames() {
+		items := board.Columns[name]
+		for i := range items {
+			if failed != nil && failed[items[i].Number] {
+				continue
+			}
+			return &items[i]
+		}
+	}
+	return nil
 }
