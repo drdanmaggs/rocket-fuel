@@ -119,9 +119,10 @@ func hasWorkerWindow(tm tmux.Runner, session, prefix string) bool {
 }
 
 func removeWorktree(repoDir, worktreeDir string) error {
-	cmd := exec.CommandContext(context.Background(),
-		"git", "worktree", "remove", "--force", worktreeDir,
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", "worktree", "remove", "--force", worktreeDir)
 	cmd.Dir = repoDir
 
 	if out, err := cmd.CombinedOutput(); err != nil {
@@ -131,9 +132,10 @@ func removeWorktree(repoDir, worktreeDir string) error {
 }
 
 func pruneWorktrees(repoDir string) error {
-	cmd := exec.CommandContext(context.Background(),
-		"git", "worktree", "prune",
-	)
+	ctx, cancel := context.WithTimeout(context.Background(), gitTimeout)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "git", "worktree", "prune")
 	cmd.Dir = repoDir
 
 	if out, err := cmd.CombinedOutput(); err != nil {

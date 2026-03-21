@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -46,7 +47,9 @@ func runDispatch(cmd *cobra.Command, _ []string) error {
 
 // ghRunner executes gh CLI commands — the real implementation of project.GHRunner.
 func ghRunner(args ...string) ([]byte, error) {
-	return exec.CommandContext(context.Background(), "gh", args...).Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	return exec.CommandContext(ctx, "gh", args...).Output()
 }
 
 func loadMaxWorkers(repoDir string) int {
