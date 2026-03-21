@@ -55,20 +55,22 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 }
 
 // RouteSkill determines which skill to use based on issue labels.
+// Default is /tdd (TDD always). The "bug" label also routes to /tdd
+// because every bug fix starts with a failing test.
 func RouteSkill(labels []string) string {
 	for _, label := range labels {
 		switch label {
 		case "workflow:tdd":
 			return "/tdd"
-		case "workflow:bug-fix":
-			return "/bug-fix"
+		case "workflow:bug-fix", "bug", "bug-fix":
+			return "/tdd"
 		case "workflow:epc":
 			return "/epc"
 		case "workflow:issue-scope":
 			return "/issue-scope"
 		}
 	}
-	return "/epc" // default skill
+	return "/tdd" // default: TDD always
 }
 
 // buildPrompt creates the prompt string for Claude Code.
