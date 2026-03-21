@@ -30,7 +30,7 @@ type SpawnConfig struct {
 func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	branchName := fmt.Sprintf("rf/issue-%d", issue.Number)
 	worktreeDir := filepath.Join(cfg.RepoDir, ".worktrees", fmt.Sprintf("worker-%d", issue.Number))
-	windowName := fmt.Sprintf("worker-%d", issue.Number)
+	windowName := workerWindowName(issue)
 
 	// Create git worktree.
 	if err := createWorktree(cfg.RepoDir, worktreeDir, branchName); err != nil {
@@ -87,6 +87,26 @@ func buildPrompt(issue Issue, skill string) string {
 	_, _ = fmt.Fprintf(&b, "Stay focused on this single issue. Don't scope-creep.")
 
 	return b.String()
+}
+
+// workerWindowName creates a descriptive tmux window name for a worker.
+// Format: "#1328: fix git hooks" (truncated to 30 chars).
+func workerWindowName(issue Issue) string {
+	title := issue.Title
+	// Strip common prefixes like "feat:", "fix:", "test:" for brevity.
+	for _, prefix := range []string{"feat: ", "fix: ", "test: ", "refactor: ", "docs: ", "chore: "} {
+		if len(title) > len(prefix) && title[:len(prefix)] == prefix {
+			title = title[len(prefix):]
+			break
+		}
+	}
+
+	maxTitleLen := 25
+	if len(title) > maxTitleLen {
+		title = title[:maxTitleLen]
+	}
+
+	return fmt.Sprintf("#%d: %s", issue.Number, title)
 }
 
 func createWorktree(repoDir, worktreeDir, branchName string) error {

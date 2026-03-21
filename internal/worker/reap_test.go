@@ -3,6 +3,7 @@ package worker
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -24,7 +25,19 @@ func (m *mockTmuxRunner) HasSession(name string) bool {
 }
 
 func (m *mockTmuxRunner) HasWindow(session, window string) bool {
-	return m.windows[session] != nil && m.windows[session][window]
+	if m.windows[session] == nil {
+		return false
+	}
+	// Support prefix matching for "#N:" style worker window names.
+	if m.windows[session][window] {
+		return true
+	}
+	for name := range m.windows[session] {
+		if strings.HasPrefix(name, window) {
+			return true
+		}
+	}
+	return false
 }
 
 func (m *mockTmuxRunner) NewSession(name string) error {
@@ -102,10 +115,10 @@ func TestReapSkipsActiveWorkers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Worker-99 window exists in session (still active).
+	// Worker-99 window exists in session (new #N: naming format).
 	tm := newMockTmuxRunner()
 	tm.sessions["rf-integrator"] = true
-	_ = tm.NewWindow("rf-integrator", "worker-99")
+	_ = tm.NewWindow("rf-integrator", "#99: some issue")
 
 	results, err := Reap(tm, "rf-integrator", repoDir)
 	if err != nil {

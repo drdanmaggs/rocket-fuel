@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
@@ -45,8 +46,11 @@ func Reap(tm tmux.Runner, sessionName, repoDir string, dryRun ...bool) ([]ReapRe
 		name := entry.Name() // e.g. "worker-42"
 		worktreeDir := filepath.Join(worktreesDir, name)
 
-		// Check if the worker's window still exists in the main session.
-		windowExists := tm.HasSession(sessionName) && tm.HasWindow(sessionName, name)
+		// Check if a window for this worker exists. Window names use "#N: title"
+		// format, so match by issue number prefix.
+		issueNum := strings.TrimPrefix(name, "worker-")
+		windowPrefix := "#" + issueNum + ":"
+		windowExists := tm.HasSession(sessionName) && hasWorkerWindow(tm, sessionName, windowPrefix)
 
 		if windowExists {
 			results = append(results, ReapResult{
@@ -92,6 +96,26 @@ func Reap(tm tmux.Runner, sessionName, repoDir string, dryRun ...bool) ([]ReapRe
 	}
 
 	return results, nil
+}
+
+// hasWorkerWindow checks if any window in the session starts with the given prefix.
+func hasWorkerWindow(tm tmux.Runner, session, prefix string) bool {
+	cli, ok := tm.(*tmux.CLI)
+	if !ok {
+		// For mocks, fall back to HasWindow with the prefix.
+		return tm.HasWindow(session, prefix)
+	}
+
+	names, err := cli.ListWindowNames(session)
+	if err != nil {
+		return false
+	}
+	for _, name := range names {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func removeWorktree(repoDir, worktreeDir string) error {
