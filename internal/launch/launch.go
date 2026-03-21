@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/prime"
 )
@@ -41,7 +40,7 @@ func EnsureClaudeSettings(repoDir string) error {
 			"hooks": []map[string]interface{}{
 				{
 					"type":    "command",
-					"command": fmt.Sprintf("export PATH=\"$HOME/go/bin:$PATH\" && rf prime"),
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf prime`,
 				},
 			},
 		},
@@ -54,7 +53,7 @@ func EnsureClaudeSettings(repoDir string) error {
 			"hooks": []map[string]interface{}{
 				{
 					"type":    "command",
-					"command": fmt.Sprintf("export PATH=\"$HOME/go/bin:$PATH\" && rf prime"),
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf prime`,
 				},
 			},
 		},
@@ -92,9 +91,4 @@ func WritePrimeContext(repoDir string, input *prime.Input) (string, error) {
 // Includes an initial prompt so Claude acts immediately on the injected context.
 func IntegratorCommand() string {
 	return `claude --dangerously-skip-permissions "You are the Integrator. Your context has been loaded via the SessionStart hook. Review the board state and act on your startup instructions immediately."`
-}
-
-// shellQuote wraps a string in single quotes, escaping any embedded single quotes.
-func shellQuote(s string) string {
-	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
