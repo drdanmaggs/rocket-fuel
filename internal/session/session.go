@@ -75,7 +75,8 @@ func ListWorkerWindows(tm tmux.Runner, sessionName string) []string {
 
 	var workers []string
 	for _, name := range out {
-		if strings.HasPrefix(name, "worker-") {
+		// Worker windows are named "#N: title" (new) or "worker-N" (legacy).
+		if strings.HasPrefix(name, "#") || strings.HasPrefix(name, "worker-") {
 			workers = append(workers, name)
 		}
 	}
