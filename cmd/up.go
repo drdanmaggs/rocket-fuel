@@ -228,7 +228,7 @@ func selfUpdate(w io.Writer) {
 // then splits the integrator window with the dashboard.
 func spawnDashboardSplit(sessionName string) {
 	script := fmt.Sprintf(
-		`sleep 3 && tmux split-window -t %s:%s -h -p 30 'rf dashboard' && tmux select-pane -t %s:%s.0`,
+		`sleep 3 && tmux split-window -t %s:%s -h -p 30 'export PATH="$HOME/go/bin:$PATH" && rf dashboard' && tmux select-pane -t %s:%s.0`,
 		sessionName, session.WindowIntegrator,
 		sessionName, session.WindowIntegrator,
 	)
