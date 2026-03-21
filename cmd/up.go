@@ -67,6 +67,13 @@ func runUp(cmd *cobra.Command, _ []string) error {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", err)
 		}
 
+		// Split the integrator window: dashboard on the right (30%).
+		if err := tm.SplitPane(sessionName, session.WindowIntegrator, "h", 30, "rf dashboard"); err != nil {
+			_, _ = fmt.Fprintf(out, "  Warning: could not create dashboard pane: %v\n", err)
+		}
+		// Refocus the left pane (integrator/Claude).
+		_ = tm.Run("select-pane", "-t", sessionName+":"+session.WindowIntegrator+".0")
+
 		// Launch mission control in its window.
 		if err := tm.SendKeys(sessionName, session.WindowMissionCtrl, "rf mission-control --loop"); err != nil {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch mission control: %v\n", err)
