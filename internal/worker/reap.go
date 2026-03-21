@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
@@ -19,10 +18,10 @@ type ReapResult struct {
 	Reason      string
 }
 
-// Reap finds completed workers and cleans up their worktrees and tmux sessions.
-// A worker is considered complete when its tmux session no longer exists
-// (Claude Code session ended).
-func Reap(tm tmux.Runner, _, repoDir string) ([]ReapResult, error) {
+// Reap finds completed workers and cleans up their worktrees and tmux windows.
+// A worker is considered complete when its tmux window no longer exists
+// in the main session (Claude Code session ended).
+func Reap(tm tmux.Runner, sessionName, repoDir string) ([]ReapResult, error) {
 	worktreesDir := filepath.Join(repoDir, ".worktrees")
 
 	entries, err := os.ReadDir(worktreesDir)
@@ -43,24 +42,20 @@ func Reap(tm tmux.Runner, _, repoDir string) ([]ReapResult, error) {
 		name := entry.Name() // e.g. "worker-42"
 		worktreeDir := filepath.Join(worktreesDir, name)
 
-		// Extract issue number from worker name to find the session.
-		issueNum := strings.TrimPrefix(name, "worker-")
-		workerSession := "rf-worker-" + issueNum
+		// Check if the worker's window still exists in the main session.
+		windowExists := tm.HasSession(sessionName) && tm.HasWindow(sessionName, name)
 
-		// Check if the worker's tmux session still exists.
-		sessionExists := tm.HasSession(workerSession)
-
-		if sessionExists {
+		if windowExists {
 			results = append(results, ReapResult{
 				WindowName:  name,
 				WorktreeDir: worktreeDir,
 				Reaped:      false,
-				Reason:      "session still active",
+				Reason:      "window still active",
 			})
 			continue
 		}
 
-		// Session is gone — clean up the worktree.
+		// Window is gone — clean up the worktree.
 		if err := removeWorktree(repoDir, worktreeDir); err != nil {
 			results = append(results, ReapResult{
 				WindowName:  name,
