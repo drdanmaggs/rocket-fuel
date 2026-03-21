@@ -13,12 +13,14 @@ func TestRouteSkillFromLabels(t *testing.T) {
 		expected string
 	}{
 		{"tdd label", []string{"workflow:tdd"}, "/tdd"},
-		{"bug-fix label", []string{"workflow:bug-fix"}, "/bug-fix"},
+		{"bug-fix workflow label", []string{"workflow:bug-fix"}, "/tdd"},
+		{"bug label routes to tdd", []string{"bug"}, "/tdd"},
+		{"bug-fix label routes to tdd", []string{"bug-fix"}, "/tdd"},
 		{"epc label", []string{"workflow:epc"}, "/epc"},
 		{"issue-scope label", []string{"workflow:issue-scope"}, "/issue-scope"},
-		{"no workflow label", []string{"enhancement", "v0.1"}, "/epc"},
-		{"empty labels", nil, "/epc"},
-		{"multiple labels picks first workflow", []string{"v0.1", "workflow:tdd", "workflow:bug-fix"}, "/tdd"},
+		{"no workflow label defaults to tdd", []string{"enhancement", "v0.1"}, "/tdd"},
+		{"empty labels defaults to tdd", nil, "/tdd"},
+		{"multiple labels picks first workflow", []string{"v0.1", "workflow:tdd", "workflow:epc"}, "/tdd"},
 	}
 
 	for _, tt := range tests {
