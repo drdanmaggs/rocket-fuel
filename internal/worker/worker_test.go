@@ -53,7 +53,7 @@ func TestBuildPrompt(t *testing.T) {
 	checks := []string{
 		"#42",
 		"Add user login",
-		"OAuth2 flow",
+		"gh issue view 42",
 		"/tdd",
 		"gh pr create",
 		"GUPP",
@@ -78,8 +78,9 @@ func TestBuildPromptWithoutBody(t *testing.T) {
 
 	prompt := buildPrompt(issue, "/bug-fix")
 
-	if contains(prompt, "Issue description") {
-		t.Error("expected no 'Issue description' section when body is empty")
+	// Should still contain gh issue view for reading the full issue
+	if !contains(prompt, "gh issue view 1") {
+		t.Error("expected prompt to contain 'gh issue view 1'")
 	}
 }
 
