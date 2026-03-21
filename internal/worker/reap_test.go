@@ -9,7 +9,7 @@ import (
 // mockTmuxRunner for reap tests.
 type mockTmuxRunner struct {
 	sessions map[string]bool
-	windows  map[string]map[string]bool // session -> window -> exists
+	windows  map[string]map[string]bool
 }
 
 func newMockTmuxRunner() *mockTmuxRunner {
@@ -66,7 +66,6 @@ func (e *mockSelectError) Error() string { return "window not found" }
 func TestReapCleansUpCompletedWorkers(t *testing.T) {
 	t.Parallel()
 
-	// Set up a fake repo with a worktrees directory.
 	repoDir := t.TempDir()
 	worktreesDir := filepath.Join(repoDir, ".worktrees")
 
@@ -74,9 +73,8 @@ func TestReapCleansUpCompletedWorkers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// tmux has no window for worker-42 (session ended).
+	// No rf-worker-42 session exists (worker finished).
 	tm := newMockTmuxRunner()
-	tm.sessions["rocket-fuel"] = true
 
 	results, err := Reap(tm, "rocket-fuel", repoDir)
 	if err != nil {
@@ -87,8 +85,6 @@ func TestReapCleansUpCompletedWorkers(t *testing.T) {
 		t.Fatalf("expected 1 result, got %d", len(results))
 	}
 
-	// The worktree dir was just a plain dir (not a real worktree),
-	// so git worktree remove will fail, but we still get a result.
 	r := results[0]
 	if r.WindowName != "worker-42" {
 		t.Errorf("expected window name 'worker-42', got %q", r.WindowName)
@@ -105,10 +101,9 @@ func TestReapSkipsActiveWorkers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// tmux HAS the window for worker-99 (still active).
+	// rf-worker-99 session exists (still active).
 	tm := newMockTmuxRunner()
-	tm.sessions["rocket-fuel"] = true
-	_ = tm.NewWindow("rocket-fuel", "worker-99")
+	tm.sessions["rf-worker-99"] = true
 
 	results, err := Reap(tm, "rocket-fuel", repoDir)
 	if err != nil {
@@ -123,8 +118,8 @@ func TestReapSkipsActiveWorkers(t *testing.T) {
 	if r.Reaped {
 		t.Error("expected active worker to NOT be reaped")
 	}
-	if r.Reason != "window still active" {
-		t.Errorf("expected reason 'window still active', got %q", r.Reason)
+	if r.Reason != "session still active" {
+		t.Errorf("expected reason 'session still active', got %q", r.Reason)
 	}
 }
 

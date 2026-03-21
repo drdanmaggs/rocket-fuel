@@ -22,35 +22,46 @@ type Issue struct {
 // SpawnConfig holds configuration for spawning a worker.
 type SpawnConfig struct {
 	RepoDir     string // root of the git repo
-	SessionName string // tmux session to create window in
+	SessionName string // parent session name (used for naming convention only)
 }
 
-// Spawn creates a git worktree, tmux window, and launches Claude Code for an issue.
+// Spawn creates a git worktree, its own tmux session, and launches Claude Code for an issue.
+// Each worker gets an isolated tmux session (rf-worker-<number>), not a window in the integrator.
 func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	branchName := fmt.Sprintf("rf/issue-%d", issue.Number)
 	worktreeDir := filepath.Join(cfg.RepoDir, ".worktrees", fmt.Sprintf("worker-%d", issue.Number))
-	windowName := fmt.Sprintf("worker-%d", issue.Number)
+	sessionName := fmt.Sprintf("rf-worker-%d", issue.Number)
 
 	// Create git worktree.
 	if err := createWorktree(cfg.RepoDir, worktreeDir, branchName); err != nil {
 		return fmt.Errorf("create worktree: %w", err)
 	}
 
-	// Create tmux window.
-	if err := tm.NewWindow(cfg.SessionName, windowName); err != nil {
-		return fmt.Errorf("create window: %w", err)
+	// Create a dedicated tmux session for this worker.
+	if err := tm.NewSession(sessionName); err != nil {
+		return fmt.Errorf("create worker session: %w", err)
 	}
 
-	// Send commands to the new window: cd into worktree and launch claude.
+	// Rename window 0 to the worker name.
+	if cli, ok := tm.(*tmux.CLI); ok {
+		_ = cli.RenameWindow(sessionName, "0", fmt.Sprintf("worker-%d", issue.Number))
+	}
+
+	// Send commands: cd into worktree and launch claude with the prompt.
 	skill := routeSkill(issue.Labels)
 	prompt := buildPrompt(issue, skill)
 
-	sendKeys := fmt.Sprintf("cd %s && claude --prompt %s", worktreeDir, shellQuote(prompt))
-	if err := tmuxSendKeys(tm, cfg.SessionName, windowName, sendKeys); err != nil {
+	sendKeys := fmt.Sprintf("cd %s && claude --dangerously-skip-permissions %s", worktreeDir, shellQuote(prompt))
+	if err := tm.SendKeys(sessionName, fmt.Sprintf("worker-%d", issue.Number), sendKeys); err != nil {
 		return fmt.Errorf("send keys: %w", err)
 	}
 
 	return nil
+}
+
+// SessionName returns the tmux session name for a worker.
+func SessionName(issueNumber int) string {
+	return fmt.Sprintf("rf-worker-%d", issueNumber)
 }
 
 // routeSkill determines which skill to use based on issue labels.
@@ -105,11 +116,6 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 	return nil
 }
 
-func tmuxSendKeys(tm tmux.Runner, session, window, keys string) error {
-	return tm.SendKeys(session, window, keys)
-}
-
 func shellQuote(s string) string {
-	// Single-quote the string, escaping any existing single quotes.
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }

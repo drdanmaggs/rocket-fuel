@@ -7,8 +7,8 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
 
-// DefaultSessionName is the tmux session name used by Rocket Fuel.
-const DefaultSessionName = "rocket-fuel"
+// DefaultSessionName is the tmux session name for the integrator.
+const DefaultSessionName = "rf-integrator"
 
 // MissionControlSession is the separate tmux session for mission control.
 const MissionControlSession = "rf-mission-control"
@@ -57,14 +57,27 @@ func SetupMissionControl(tm tmux.Runner) (bool, error) {
 }
 
 // TeardownAll kills both the main session and mission control.
+// TeardownAll kills the integrator, mission control, and all worker sessions.
 func TeardownAll(tm tmux.Runner, sessionName string) (bool, error) {
 	killed := false
 
+	// Kill worker sessions (rf-worker-*).
+	if cli, ok := tm.(*tmux.CLI); ok {
+		for _, ws := range cli.ListSessions() {
+			if len(ws) > 10 && ws[:10] == "rf-worker-" {
+				_ = tm.KillSession(ws)
+				killed = true
+			}
+		}
+	}
+
+	// Kill mission control.
 	if tm.HasSession(MissionControlSession) {
 		_ = tm.KillSession(MissionControlSession)
 		killed = true
 	}
 
+	// Kill integrator.
 	if tm.HasSession(sessionName) {
 		if err := tm.KillSession(sessionName); err != nil {
 			return killed, fmt.Errorf("kill session: %w", err)
