@@ -44,7 +44,15 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		// Try to load from project registry.
 		reg, regErr := projects.LoadRegistry()
 		if regErr != nil || len(reg) == 0 {
-			return fmt.Errorf("not in a git repository — cd into your project first")
+			// Registry empty — discover repos automatically.
+			homeDir, homeErr := os.UserHomeDir()
+			if homeErr != nil {
+				return fmt.Errorf("not in a git repository — cd into your project first")
+			}
+			reg = projects.DiscoverProjects(homeDir)
+			if len(reg) == 0 {
+				return fmt.Errorf("no git repositories found — cd into your project and run rf launch")
+			}
 		}
 
 		// Show available projects and prompt user to pick one.
