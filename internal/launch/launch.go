@@ -59,6 +59,19 @@ func EnsureClaudeSettings(repoDir string) error {
 		},
 	}
 
+	// Set SessionEnd hook for instant worker completion detection.
+	hooks["SessionEnd"] = []map[string]interface{}{
+		{
+			"matcher": "",
+			"hooks": []map[string]interface{}{
+				{
+					"type":    "command",
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf session-ended`,
+				},
+			},
+		},
+	}
+
 	// Set Stop hook to keep the Integrator working.
 	hooks["Stop"] = []map[string]interface{}{
 		{
