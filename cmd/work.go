@@ -68,7 +68,7 @@ func runWork(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("spawn worker: %w", err)
 	}
 
-	skill := skillFromLabels(issue.Labels)
+	skill := worker.RouteSkill(issue.Labels)
 	_, _ = fmt.Fprintf(cmd.OutOrStdout(), "Spawned worker-%d on issue #%d: %s (skill: %s)\n",
 		issue.Number, issue.Number, issue.Title, skill)
 
@@ -127,20 +127,4 @@ func fetchIssue(number int) (*worker.Issue, error) {
 		Body:   gh.Body,
 		Labels: labels,
 	}, nil
-}
-
-func skillFromLabels(labels []string) string {
-	for _, label := range labels {
-		switch label {
-		case "workflow:tdd":
-			return "/tdd"
-		case "workflow:bug-fix":
-			return "/bug-fix"
-		case "workflow:epc":
-			return "/epc"
-		case "workflow:issue-scope":
-			return "/issue-scope"
-		}
-	}
-	return "/epc"
 }
