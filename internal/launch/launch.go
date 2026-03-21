@@ -59,6 +59,19 @@ func EnsureClaudeSettings(repoDir string) error {
 		},
 	}
 
+	// Set Stop hook to keep the Integrator working.
+	hooks["Stop"] = []map[string]interface{}{
+		{
+			"matcher": "",
+			"hooks": []map[string]interface{}{
+				{
+					"type":    "command",
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf should-continue`,
+				},
+			},
+		},
+	}
+
 	// Set PreToolUse hook for merge safety — CI gate.
 	hooks["PreToolUse"] = []map[string]interface{}{
 		{
