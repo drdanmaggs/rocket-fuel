@@ -43,7 +43,7 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	}
 
 	// Send commands: cd into worktree and launch claude with the prompt.
-	skill := routeSkill(issue.Labels)
+	skill := RouteSkill(issue.Labels)
 	prompt := buildPrompt(issue, skill)
 
 	sendKeys := fmt.Sprintf("cd %s && claude --dangerously-skip-permissions %s", worktreeDir, shellQuote(prompt))
@@ -54,8 +54,8 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	return nil
 }
 
-// routeSkill determines which skill to use based on issue labels.
-func routeSkill(labels []string) string {
+// RouteSkill determines which skill to use based on issue labels.
+func RouteSkill(labels []string) string {
 	for _, label := range labels {
 		switch label {
 		case "workflow:tdd":
