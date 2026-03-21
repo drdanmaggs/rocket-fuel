@@ -36,7 +36,7 @@ func runDispatchCycle(dryRun bool) (*dispatch.Result, error) {
 		return nil, fmt.Errorf("no project linked: %w", err)
 	}
 
-	board, err := project.FetchBoard(cfg.Owner, cfg.ProjectNumber)
+	board, err := project.FetchBoard(ghRunner, cfg.Owner, cfg.ProjectNumber)
 	if err != nil {
 		return nil, err
 	}

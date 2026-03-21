@@ -66,7 +66,7 @@ func runProjectBoard(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("no project linked: %w\nRun: rocket-fuel project link <project-url>", err)
 	}
 
-	board, err := project.FetchBoard(cfg.Owner, cfg.ProjectNumber)
+	board, err := project.FetchBoard(ghRunner, cfg.Owner, cfg.ProjectNumber)
 	if err != nil {
 		return fmt.Errorf("fetch board: %w", err)
 	}
