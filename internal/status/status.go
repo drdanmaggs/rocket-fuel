@@ -52,13 +52,9 @@ func Gather(tm tmux.Runner, sessionName, repoDir string) (*Summary, error) {
 		name := entry.Name()
 		worktreeDir := filepath.Join(worktreesDir, name)
 
-		// Workers run in their own sessions (rf-worker-<number>).
-		issueNum := strings.TrimPrefix(name, "worker-")
-		workerSession := "rf-worker-" + issueNum
-
 		ws := WorkerStatus{
 			Name:       name,
-			WindowOpen: tm.HasSession(workerSession),
+			WindowOpen: s.SessionActive && tm.HasWindow(sessionName, name),
 			Branch:     worktreeBranch(worktreeDir),
 		}
 

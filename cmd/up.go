@@ -67,11 +67,9 @@ func runUp(cmd *cobra.Command, _ []string) error {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", err)
 		}
 
-		// Start mission control in a separate detached session.
-		if mcCreated, mcErr := session.SetupMissionControl(tm); mcErr != nil {
-			_, _ = fmt.Fprintf(out, "  Warning: could not start mission control: %v\n", mcErr)
-		} else if mcCreated {
-			_ = tm.SendKeys(session.MissionControlSession, session.WindowMissionCtrl, "rf mission-control --loop")
+		// Launch mission control in its window.
+		if err := tm.SendKeys(sessionName, session.WindowMissionCtrl, "rf mission-control --loop"); err != nil {
+			_, _ = fmt.Fprintf(out, "  Warning: could not launch mission control: %v\n", err)
 		}
 
 		_, _ = fmt.Fprintln(out)

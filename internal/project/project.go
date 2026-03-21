@@ -82,21 +82,28 @@ func FetchBoard(owner string, projectNumber int) (*BoardSummary, error) {
 	return summary, nil
 }
 
-// NextReady returns the highest-priority issue from the "Scoped" column.
-// Returns nil if no scoped issues are available.
+// readyColumnNames are the column names that indicate work is ready to dispatch.
+// GitHub's default Kanban uses "Ready". Rocket Fuel docs use "Scoped".
+var readyColumnNames = []string{"Ready", "Scoped"}
+
+// NextReady returns the highest-priority issue from the ready column.
+// Checks for "Ready" (GitHub default) and "Scoped" (Rocket Fuel convention).
+// Returns nil if no ready issues are available.
 func NextReady(board *BoardSummary) *Item {
-	scoped := board.Columns["Scoped"]
-	if len(scoped) == 0 {
-		return nil
+	for _, name := range readyColumnNames {
+		items := board.Columns[name]
+		if len(items) > 0 {
+			return &items[0]
+		}
 	}
-	return &scoped[0]
+	return nil
 }
 
 // FormatBoard renders the board as a human-readable summary.
 func FormatBoard(board *BoardSummary) string {
 	var b strings.Builder
 
-	columnOrder := []string{"Someday/Maybe", "Backlog", "Scoped", "In Progress", "Review", "Done"}
+	columnOrder := []string{"Someday/Maybe", "Backlog", "Ready", "Scoped", "In Progress", "In progress", "Review", "In review", "Done"}
 
 	_, _ = fmt.Fprintln(&b, "=== Project Board ===")
 	_, _ = fmt.Fprintln(&b)
