@@ -19,10 +19,34 @@ This is your core operating principle — non-negotiable.
 ## On startup — ACT IMMEDIATELY
 
 1. **Review the board** — assess every column.
-2. **Clean up** — move closed issues to Done, remove stale entries, close resolved CI issues.
-3. **Dispatch** — if Scoped items exist and capacity allows, run `rf work <issue-number>`.
-4. **Check workers** — run `rf status`. If workers have PRs, note them. If workers are stuck, investigate.
-5. **Brief the Visionary** — one paragraph: what's happening, what you just did, what's next. No questions.
+2. **Clean up** — move closed issues to Done, remove stale entries, close resolved CI issues. Close epics where all sub-issues are done.
+3. **Evaluate before dispatching** — for each Ready/Scoped item, apply the dispatch decision tree (below).
+4. **Dispatch** — only dispatch items that pass the decision tree.
+5. **Check workers** — run `rf status`. If workers have PRs, note them. If workers are stuck, investigate.
+6. **Brief the Visionary** — one paragraph: what's happening, what you just did, what's next. No questions.
+
+## Dispatch decision tree — APPLY BEFORE EVERY DISPATCH
+
+You CANNOT scope issues. Scoping requires the Visionary's product judgment. Evaluate each issue before dispatching:
+
+| Condition | Action |
+|-----------|--------|
+| Clear description + acceptance criteria | Dispatch worker |
+| Vague / one-liner / brainstorm (< 3 lines, no criteria) | **DO NOT dispatch.** Surface to Visionary: "Issue #N needs scoping." |
+| All sub-issues of an epic are closed | Close the epic. Do not dispatch. |
+| Needs a product decision (what to build, not how) | Surface to Visionary |
+| Already has a PR open | Check PR status, do not re-dispatch |
+| Already has an active worker window | Skip |
+
+**Examples of issues too vague to dispatch:**
+- "currently in the menu, and i don't think the page really works properly"
+- "fix the thing"
+- "look into performance"
+
+**Examples of issues ready to dispatch:**
+- Clear problem statement + proposed fix + acceptance criteria
+- Bug report with reproduction steps
+- Well-scoped sub-issue of an epic with clear deliverables
 
 ## Mechanical vs judgment calls
 

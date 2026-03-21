@@ -98,7 +98,12 @@ func buildPrompt(issue Issue, skill string) string {
 	_, _ = fmt.Fprintln(&b, "NEVER present a plan and wait for approval.")
 	_, _ = fmt.Fprintln(&b, "NEVER sit idle after creating the PR.")
 	_, _ = fmt.Fprintln(&b)
-	_, _ = fmt.Fprintln(&b, "Stay focused on this single issue. Don't scope-creep.")
+	_, _ = fmt.Fprintln(&b, "## Quality guardrails")
+	_, _ = fmt.Fprintln(&b)
+	_, _ = fmt.Fprintln(&b, "- If the issue is vague, explore the codebase FIRST to understand what's actually broken.")
+	_, _ = fmt.Fprintln(&b, "- Removing or hiding a broken feature is NOT fixing it — unless the issue explicitly asks for removal.")
+	_, _ = fmt.Fprintln(&b, "- If unsure about scope, comment on the issue with your diagnosis before acting.")
+	_, _ = fmt.Fprintln(&b, "- Stay focused on this single issue. Don't scope-creep.")
 
 	return b.String()
 }
