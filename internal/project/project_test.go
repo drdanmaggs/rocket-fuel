@@ -145,6 +145,106 @@ func TestFormatBoardNormalizesColumnCasing(t *testing.T) {
 	}
 }
 
+func TestFetchBoardSetsTruncatedWhenTotalCountExceedsItems(t *testing.T) {
+	t.Parallel()
+
+	fakeRun := func(args ...string) ([]byte, error) {
+		// item-list returns 2 items but totalCount says 250
+		if args[0] == "project" && args[1] == "item-list" {
+			return []byte(`{
+				"items": [
+					{"id":"1","title":"Issue A","status":"Backlog","content":{"number":1,"labels":[]}},
+					{"id":"2","title":"Issue B","status":"Backlog","content":{"number":2,"labels":[]}}
+				],
+				"totalCount": 250
+			}`), nil
+		}
+		// project view for title
+		if args[0] == "project" && args[1] == "view" {
+			return []byte(`{"title":"Test Project"}`), nil
+		}
+		return nil, nil
+	}
+
+	board, err := FetchBoard(fakeRun, "testowner", 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if !board.Truncated {
+		t.Error("expected Truncated to be true when totalCount > len(items)")
+	}
+	if board.TotalCount != 250 {
+		t.Errorf("expected TotalCount=250, got %d", board.TotalCount)
+	}
+}
+
+func TestFetchBoardNotTruncatedWhenAllItemsFit(t *testing.T) {
+	t.Parallel()
+
+	fakeRun := func(args ...string) ([]byte, error) {
+		if args[0] == "project" && args[1] == "item-list" {
+			return []byte(`{
+				"items": [
+					{"id":"1","title":"Issue A","status":"Backlog","content":{"number":1,"labels":[]}}
+				],
+				"totalCount": 1
+			}`), nil
+		}
+		if args[0] == "project" && args[1] == "view" {
+			return []byte(`{"title":"Test Project"}`), nil
+		}
+		return nil, nil
+	}
+
+	board, err := FetchBoard(fakeRun, "testowner", 1)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if board.Truncated {
+		t.Error("expected Truncated to be false when totalCount == len(items)")
+	}
+	if board.TotalCount != 1 {
+		t.Errorf("expected TotalCount=1, got %d", board.TotalCount)
+	}
+}
+
+func TestFormatBoardShowsTruncationWarning(t *testing.T) {
+	t.Parallel()
+
+	board := &BoardSummary{
+		Columns:    map[string][]Item{},
+		Truncated:  true,
+		TotalCount: 250,
+	}
+
+	out := FormatBoard(board)
+
+	if !strings.Contains(out, "WARNING") {
+		t.Errorf("expected truncation warning in output\n\nGot:\n%s", out)
+	}
+	if !strings.Contains(out, "250") {
+		t.Errorf("expected total count in warning\n\nGot:\n%s", out)
+	}
+}
+
+func TestFormatBoardNoWarningWhenNotTruncated(t *testing.T) {
+	t.Parallel()
+
+	board := &BoardSummary{
+		Columns:    map[string][]Item{},
+		Truncated:  false,
+		TotalCount: 5,
+	}
+
+	out := FormatBoard(board)
+
+	if strings.Contains(out, "WARNING") {
+		t.Errorf("expected no truncation warning\n\nGot:\n%s", out)
+	}
+}
+
 func TestIsStandardColumnCaseInsensitive(t *testing.T) {
 	t.Parallel()
 
