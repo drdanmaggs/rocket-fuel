@@ -59,6 +59,19 @@ func EnsureClaudeSettings(repoDir string) error {
 		},
 	}
 
+	// Set PreToolUse hook for merge safety — CI gate.
+	hooks["PreToolUse"] = []map[string]interface{}{
+		{
+			"matcher": "Bash(gh pr merge*)",
+			"hooks": []map[string]interface{}{
+				{
+					"type":    "command",
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf check-merge-safety`,
+				},
+			},
+		},
+	}
+
 	settings["hooks"] = hooks
 
 	data, err := json.MarshalIndent(settings, "", "  ")
