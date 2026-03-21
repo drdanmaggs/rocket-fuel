@@ -10,13 +10,17 @@ type mockRunner struct {
 	selectErr      error
 }
 
-func (m *mockRunner) HasSession(_ string) bool      { return true }
-func (m *mockRunner) HasWindow(_, _ string) bool    { return true }
-func (m *mockRunner) NewSession(_ string) error     { return nil }
-func (m *mockRunner) NewWindow(_, _ string) error   { return nil }
-func (m *mockRunner) KillSession(_ string) error    { return nil }
-func (m *mockRunner) AttachCC(_ string) error       { return nil }
-func (m *mockRunner) SendKeys(_, _, _ string) error { return nil }
+func (m *mockRunner) HasSession(_ string) bool                        { return true }
+func (m *mockRunner) HasWindow(_, _ string) bool                      { return true }
+func (m *mockRunner) NewSession(_ string) error                       { return nil }
+func (m *mockRunner) NewWindow(_, _ string) error                     { return nil }
+func (m *mockRunner) KillSession(_ string) error                      { return nil }
+func (m *mockRunner) AttachCC(_ string) error                         { return nil }
+func (m *mockRunner) SendKeys(_, _, _ string) error                   { return nil }
+func (m *mockRunner) ListWindowNames(_ string) ([]string, error)      { return nil, nil }
+func (m *mockRunner) RenameWindow(_, _, _ string) error               { return nil }
+func (m *mockRunner) SplitPane(_, _, _ string, _ int, _ string) error { return nil }
+func (m *mockRunner) Run(_ ...string) error                           { return nil }
 
 func (m *mockRunner) SelectWindow(_, window string) error {
 	if m.selectErr != nil {
