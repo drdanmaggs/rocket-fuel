@@ -182,11 +182,21 @@ func printLaunchBanner(w io.Writer) {
 func selfUpdate(w io.Writer) {
 	binaryPath, err := os.Executable()
 	if err != nil {
+		_, _ = fmt.Fprintf(w, "  Self-update check failed: %v\n", err)
 		return
 	}
 
 	result, err := selfupdate.Check(SourceDir, Version, binaryPath)
-	if err != nil || result == nil {
+	if err != nil {
+		_, _ = fmt.Fprintf(w, "  Self-update check failed: %v\n", err)
+		return
+	}
+
+	if result == nil {
+		return
+	}
+
+	if result.Skipped != "" {
 		return
 	}
 
