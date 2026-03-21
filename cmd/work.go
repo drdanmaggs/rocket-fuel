@@ -1,14 +1,11 @@
 package cmd
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
@@ -107,10 +104,13 @@ type ghLabel struct {
 }
 
 func fetchIssue(number int) (*worker.Issue, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	return fetchIssueWith(ghRunner, number)
+}
 
-	out, err := exec.CommandContext(ctx, "gh", "issue", "view", strconv.Itoa(number), "--json", "number,title,body,labels").Output()
+// fetchIssueWith fetches a GitHub issue using the provided GHRunner.
+// Extracted for testability — tests inject a mock runner.
+func fetchIssueWith(run func(...string) ([]byte, error), number int) (*worker.Issue, error) {
+	out, err := run("issue", "view", strconv.Itoa(number), "--json", "number,title,body,labels")
 	if err != nil {
 		return nil, fmt.Errorf("gh issue view: %w", err)
 	}
