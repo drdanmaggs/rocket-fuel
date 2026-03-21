@@ -97,7 +97,21 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 	cmd.Dir = repoDir
 
 	if out, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("%w\n%s", err, out)
+		// If branch already exists, clean up stale state and retry.
+		if strings.Contains(string(out), "already exists") {
+			cleanupStaleWorker(repoDir, worktreeDir, branchName)
+			// Retry once.
+			retry := exec.CommandContext(
+				context.Background(),
+				"git", "worktree", "add", "-b", branchName, worktreeDir,
+			)
+			retry.Dir = repoDir
+			if retryOut, retryErr := retry.CombinedOutput(); retryErr != nil {
+				return fmt.Errorf("%w\n%s", retryErr, retryOut)
+			}
+		} else {
+			return fmt.Errorf("%w\n%s", err, out)
+		}
 	}
 
 	// Configure git hooks in the new worktree.
@@ -106,6 +120,26 @@ func createWorktree(repoDir, worktreeDir, branchName string) error {
 	_ = setup.Run() // best-effort — don't fail spawn if make setup fails
 
 	return nil
+}
+
+// cleanupStaleWorker removes a stale worktree and branch from a previous failed spawn.
+func cleanupStaleWorker(repoDir, worktreeDir, branchName string) {
+	ctx := context.Background()
+
+	// Remove worktree if it exists.
+	remove := exec.CommandContext(ctx, "git", "worktree", "remove", "--force", worktreeDir)
+	remove.Dir = repoDir
+	_ = remove.Run()
+
+	// Prune stale worktree entries.
+	prune := exec.CommandContext(ctx, "git", "worktree", "prune")
+	prune.Dir = repoDir
+	_ = prune.Run()
+
+	// Delete the stale branch.
+	deleteBranch := exec.CommandContext(ctx, "git", "branch", "-D", branchName)
+	deleteBranch.Dir = repoDir
+	_ = deleteBranch.Run()
 }
 
 func shellQuote(s string) string {
