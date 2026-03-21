@@ -54,11 +54,6 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	return nil
 }
 
-// SessionName returns the tmux session name for a worker.
-func SessionName(issueNumber int) string {
-	return fmt.Sprintf("rf-worker-%d", issueNumber)
-}
-
 // routeSkill determines which skill to use based on issue labels.
 func routeSkill(labels []string) string {
 	for _, label := range labels {
