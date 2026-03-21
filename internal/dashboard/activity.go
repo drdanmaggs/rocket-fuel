@@ -23,7 +23,7 @@ func WriteActivity(repoDir, message string) error {
 	if err != nil {
 		return fmt.Errorf("open activity log: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	// Write timestamped line.
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
@@ -47,7 +47,7 @@ func ReadActivity(repoDir string, lines int) []string {
 		}
 		return []string{}
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var allLines []string
 	scanner := bufio.NewScanner(f)

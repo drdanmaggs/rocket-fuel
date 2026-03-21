@@ -10,7 +10,7 @@ import (
 func TestRender_noWorkers(t *testing.T) {
 	t.Parallel()
 
-	data := &DashboardData{
+	data := &Data{
 		Summary: &status.Summary{SessionActive: true},
 	}
 	out := Render(data)
@@ -29,7 +29,7 @@ func TestRender_noWorkers(t *testing.T) {
 func TestRender_withWorkers(t *testing.T) {
 	t.Parallel()
 
-	data := &DashboardData{
+	data := &Data{
 		Summary: &status.Summary{
 			SessionActive: true,
 			Workers: []status.WorkerStatus{
