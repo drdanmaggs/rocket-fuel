@@ -72,6 +72,21 @@ func (m *mockTmuxRunner) KillSession(name string) error {
 func (m *mockTmuxRunner) AttachCC(_ string) error       { return nil }
 func (m *mockTmuxRunner) SendKeys(_, _, _ string) error { return nil }
 
+func (m *mockTmuxRunner) ListWindowNames(session string) ([]string, error) {
+	if m.windows[session] == nil {
+		return nil, nil
+	}
+	var names []string
+	for name := range m.windows[session] {
+		names = append(names, name)
+	}
+	return names, nil
+}
+
+func (m *mockTmuxRunner) RenameWindow(_, _, _ string) error               { return nil }
+func (m *mockTmuxRunner) SplitPane(_, _, _ string, _ int, _ string) error { return nil }
+func (m *mockTmuxRunner) Run(_ ...string) error                           { return nil }
+
 type mockSelectError struct{}
 
 func (e *mockSelectError) Error() string { return "window not found" }

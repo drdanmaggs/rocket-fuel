@@ -38,6 +38,21 @@ func (m *mockRunner) SelectWindow(session, window string) error {
 	return &mockErr{}
 }
 
+func (m *mockRunner) ListWindowNames(session string) ([]string, error) {
+	if m.windows[session] == nil {
+		return nil, nil
+	}
+	var names []string
+	for name := range m.windows[session] {
+		names = append(names, name)
+	}
+	return names, nil
+}
+
+func (m *mockRunner) RenameWindow(_, _, _ string) error               { return nil }
+func (m *mockRunner) SplitPane(_, _, _ string, _ int, _ string) error { return nil }
+func (m *mockRunner) Run(_ ...string) error                           { return nil }
+
 type mockErr struct{}
 
 func (e *mockErr) Error() string { return "not found" }
