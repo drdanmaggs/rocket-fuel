@@ -59,6 +59,19 @@ func EnsureClaudeSettings(repoDir string) error {
 		},
 	}
 
+	// Set StopFailure hook to log API errors.
+	hooks["StopFailure"] = []map[string]interface{}{
+		{
+			"matcher": "",
+			"hooks": []map[string]interface{}{
+				{
+					"type":    "command",
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf handle-stop-failure`,
+				},
+			},
+		},
+	}
+
 	// Set PostToolUse hook to track worker activity for stuck detection.
 	hooks["PostToolUse"] = []map[string]interface{}{
 		{
