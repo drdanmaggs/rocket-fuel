@@ -2,9 +2,12 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -103,11 +106,22 @@ func buildMissionControlFuncs(dryRun bool) missioncontrol.Funcs {
 		}
 
 		reaped := 0
+		var nudges []string
 		for _, r := range results {
 			if r.Reaped {
 				reaped++
+				// Build nudge message for the integrator.
+				nudges = append(nudges, buildReapNudge(r))
 			}
 		}
+
+		// Nudge the integrator about completed workers.
+		if len(nudges) > 0 {
+			for _, msg := range nudges {
+				_ = tm.SendKeys(sessionName, session.WindowIntegrator, msg)
+			}
+		}
+
 		return fmt.Sprintf("reaped %d worker(s)", reaped), nil
 	}
 
@@ -115,6 +129,43 @@ func buildMissionControlFuncs(dryRun bool) missioncontrol.Funcs {
 		Dispatch: dispatchFn,
 		Reap:     reapFn,
 	}
+}
+
+// buildReapNudge creates a message to send to the Integrator about a reaped worker.
+func buildReapNudge(r worker.ReapResult) string {
+	// Extract issue number from window name (worker-42 or #42: title).
+	name := r.WindowName
+	issueNum := strings.TrimPrefix(name, "worker-")
+
+	// Check if there's a PR for this worker's branch.
+	branchName := "rf/issue-" + issueNum
+	prInfo := checkPRForBranch(branchName)
+
+	if prInfo != "" {
+		return fmt.Sprintf("[Mission Control] Worker #%s completed. %s. Review and update the board.", issueNum, prInfo)
+	}
+	return fmt.Sprintf("[Mission Control] Worker #%s completed (no PR found). Check if work was finished.", issueNum)
+}
+
+// checkPRForBranch checks if a PR exists for the given branch.
+func checkPRForBranch(branch string) string {
+	out, err := exec.CommandContext(context.Background(),
+		"gh", "pr", "list", "--head", branch, "--json", "number,title,url", "--limit", "1",
+	).Output()
+	if err != nil {
+		return ""
+	}
+
+	var prs []struct {
+		Number int    `json:"number"`
+		Title  string `json:"title"`
+		URL    string `json:"url"`
+	}
+	if err := json.Unmarshal(out, &prs); err != nil || len(prs) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("PR #%d: %s", prs[0].Number, prs[0].Title)
 }
 
 func printCycleResult(cmd *cobra.Command, result *missioncontrol.CycleResult) {
