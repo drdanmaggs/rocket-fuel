@@ -23,6 +23,10 @@ func repoRoot() (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
+// dispatchFailedIssues tracks issues that failed to spawn.
+// Persists across heartbeat cycles to avoid infinite retries.
+var dispatchFailedIssues = make(map[int]bool)
+
 // runDispatchCycle executes one dispatch cycle: fetch board, check capacity, spawn.
 // Used by both the dispatch command and the mission control loop.
 func runDispatchCycle(dryRun bool) (*dispatch.Result, error) {
@@ -84,5 +88,6 @@ func runDispatchCycle(dryRun bool) (*dispatch.Result, error) {
 		ActiveWorkers:  activeWorkers,
 		SpawnFunc:      spawnFn,
 		TransitionFunc: transitionFn,
+		FailedIssues:   dispatchFailedIssues,
 	})
 }
