@@ -3,15 +3,13 @@ package session
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 )
 
-// DefaultSessionName is the tmux session name for the integrator.
+// DefaultSessionName is the tmux session for all Rocket Fuel windows.
 const DefaultSessionName = "rf-integrator"
-
-// MissionControlSession is the separate tmux session for mission control.
-const MissionControlSession = "rf-mission-control"
 
 // Window names.
 const (
@@ -19,7 +17,9 @@ const (
 	WindowMissionCtrl = "mission-control"
 )
 
-// Setup creates the Rocket Fuel tmux session with a single "integrator" window.
+// Setup creates the Rocket Fuel tmux session with an "integrator" window
+// and a "mission-control" window. All agents (workers included) live as
+// tabs in this single session so the Visionary can see everything.
 // Returns true if a new session was created, false if one already existed.
 func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	if tm.HasSession(sessionName) {
@@ -35,55 +35,49 @@ func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 		_ = cli.RenameWindow(sessionName, "0", WindowIntegrator)
 	}
 
+	// Create mission-control window.
+	if err := tm.NewWindow(sessionName, WindowMissionCtrl); err != nil {
+		_ = tm.KillSession(sessionName)
+		return false, fmt.Errorf("create window %q: %w", WindowMissionCtrl, err)
+	}
+
+	// Select integrator so the Visionary lands there.
+	_ = tm.SelectWindow(sessionName, WindowIntegrator)
+
 	return true, nil
 }
 
-// SetupMissionControl creates a separate detached tmux session for mission control.
-// Returns true if created, false if already running.
-func SetupMissionControl(tm tmux.Runner) (bool, error) {
-	if tm.HasSession(MissionControlSession) {
+// TeardownAll kills the session (which contains all windows — integrator,
+// mission-control, and any workers).
+func TeardownAll(tm tmux.Runner, sessionName string) (bool, error) {
+	if !tm.HasSession(sessionName) {
 		return false, nil
 	}
 
-	if err := tm.NewSession(MissionControlSession); err != nil {
-		return false, fmt.Errorf("create mission control session: %w", err)
-	}
-
-	if cli, ok := tm.(*tmux.CLI); ok {
-		_ = cli.RenameWindow(MissionControlSession, "0", WindowMissionCtrl)
+	if err := tm.KillSession(sessionName); err != nil {
+		return false, fmt.Errorf("kill session: %w", err)
 	}
 
 	return true, nil
 }
 
-// TeardownAll kills both the main session and mission control.
-// TeardownAll kills the integrator, mission control, and all worker sessions.
-func TeardownAll(tm tmux.Runner, sessionName string) (bool, error) {
-	killed := false
+// ListWorkerWindows returns the names of worker windows in the session.
+func ListWorkerWindows(tm tmux.Runner, sessionName string) []string {
+	cli, ok := tm.(*tmux.CLI)
+	if !ok {
+		return nil
+	}
 
-	// Kill worker sessions (rf-worker-*).
-	if cli, ok := tm.(*tmux.CLI); ok {
-		for _, ws := range cli.ListSessions() {
-			if len(ws) > 10 && ws[:10] == "rf-worker-" {
-				_ = tm.KillSession(ws)
-				killed = true
-			}
+	out, err := cli.ListWindowNames(sessionName)
+	if err != nil {
+		return nil
+	}
+
+	var workers []string
+	for _, name := range out {
+		if strings.HasPrefix(name, "worker-") {
+			workers = append(workers, name)
 		}
 	}
-
-	// Kill mission control.
-	if tm.HasSession(MissionControlSession) {
-		_ = tm.KillSession(MissionControlSession)
-		killed = true
-	}
-
-	// Kill integrator.
-	if tm.HasSession(sessionName) {
-		if err := tm.KillSession(sessionName); err != nil {
-			return killed, fmt.Errorf("kill session: %w", err)
-		}
-		killed = true
-	}
-
-	return killed, nil
+	return workers
 }

@@ -100,11 +100,13 @@ func TestSetupCreatesSession(t *testing.T) {
 		t.Error("expected session to exist")
 	}
 
-	// Setup creates only the session (window 0 = integrator).
-	// Mission-control is created post-attach by cmd/up.go.
+	// Setup creates mission-control as an additional window.
 	windows := tm.windows["test-session"]
-	if len(windows) != 0 {
-		t.Errorf("expected 0 additional windows (mission-control created post-attach), got %d: %v", len(windows), windows)
+	if len(windows) != 1 {
+		t.Errorf("expected 1 additional window (mission-control), got %d: %v", len(windows), windows)
+	}
+	if len(windows) > 0 && windows[0] != WindowMissionCtrl {
+		t.Errorf("expected window %q, got %q", WindowMissionCtrl, windows[0])
 	}
 }
 

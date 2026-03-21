@@ -25,26 +25,21 @@ type SpawnConfig struct {
 	SessionName string // parent session name (used for naming convention only)
 }
 
-// Spawn creates a git worktree, its own tmux session, and launches Claude Code for an issue.
-// Each worker gets an isolated tmux session (rf-worker-<number>), not a window in the integrator.
+// Spawn creates a git worktree, a tmux window in the main session, and launches Claude Code.
+// Workers appear as tabs so the Visionary can see what's happening.
 func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	branchName := fmt.Sprintf("rf/issue-%d", issue.Number)
 	worktreeDir := filepath.Join(cfg.RepoDir, ".worktrees", fmt.Sprintf("worker-%d", issue.Number))
-	sessionName := fmt.Sprintf("rf-worker-%d", issue.Number)
+	windowName := fmt.Sprintf("worker-%d", issue.Number)
 
 	// Create git worktree.
 	if err := createWorktree(cfg.RepoDir, worktreeDir, branchName); err != nil {
 		return fmt.Errorf("create worktree: %w", err)
 	}
 
-	// Create a dedicated tmux session for this worker.
-	if err := tm.NewSession(sessionName); err != nil {
-		return fmt.Errorf("create worker session: %w", err)
-	}
-
-	// Rename window 0 to the worker name.
-	if cli, ok := tm.(*tmux.CLI); ok {
-		_ = cli.RenameWindow(sessionName, "0", fmt.Sprintf("worker-%d", issue.Number))
+	// Create a window in the main session for this worker.
+	if err := tm.NewWindow(cfg.SessionName, windowName); err != nil {
+		return fmt.Errorf("create worker window: %w", err)
 	}
 
 	// Send commands: cd into worktree and launch claude with the prompt.
@@ -52,7 +47,7 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	prompt := buildPrompt(issue, skill)
 
 	sendKeys := fmt.Sprintf("cd %s && claude --dangerously-skip-permissions %s", worktreeDir, shellQuote(prompt))
-	if err := tm.SendKeys(sessionName, fmt.Sprintf("worker-%d", issue.Number), sendKeys); err != nil {
+	if err := tm.SendKeys(cfg.SessionName, windowName, sendKeys); err != nil {
 		return fmt.Errorf("send keys: %w", err)
 	}
 
