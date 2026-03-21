@@ -31,9 +31,7 @@ func Setup(tm tmux.Runner, sessionName string) (bool, error) {
 	}
 
 	// Rename the default window (window 0) to "integrator".
-	if cli, ok := tm.(*tmux.CLI); ok {
-		_ = cli.RenameWindow(sessionName, "0", WindowIntegrator)
-	}
+	_ = tm.RenameWindow(sessionName, "0", WindowIntegrator)
 
 	// Create mission-control window.
 	if err := tm.NewWindow(sessionName, WindowMissionCtrl); err != nil {
@@ -63,18 +61,13 @@ func TeardownAll(tm tmux.Runner, sessionName string) (bool, error) {
 
 // ListWorkerWindows returns the names of worker windows in the session.
 func ListWorkerWindows(tm tmux.Runner, sessionName string) []string {
-	cli, ok := tm.(*tmux.CLI)
-	if !ok {
-		return nil
-	}
-
-	out, err := cli.ListWindowNames(sessionName)
+	names, err := tm.ListWindowNames(sessionName)
 	if err != nil {
 		return nil
 	}
 
 	var workers []string
-	for _, name := range out {
+	for _, name := range names {
 		// Worker windows are named "#N: title" (new) or "worker-N" (legacy).
 		if strings.HasPrefix(name, "#") || strings.HasPrefix(name, "worker-") {
 			workers = append(workers, name)

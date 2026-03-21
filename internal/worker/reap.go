@@ -100,13 +100,7 @@ func Reap(tm tmux.Runner, sessionName, repoDir string, dryRun ...bool) ([]ReapRe
 
 // hasWorkerWindow checks if any window in the session starts with the given prefix.
 func hasWorkerWindow(tm tmux.Runner, session, prefix string) bool {
-	cli, ok := tm.(*tmux.CLI)
-	if !ok {
-		// For mocks, fall back to HasWindow with the prefix.
-		return tm.HasWindow(session, prefix)
-	}
-
-	names, err := cli.ListWindowNames(session)
+	names, err := tm.ListWindowNames(session)
 	if err != nil {
 		return false
 	}

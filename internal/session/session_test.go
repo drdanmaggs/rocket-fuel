@@ -76,6 +76,23 @@ func (m *mockRunner) SendKeys(session, window, keys string) error {
 	return nil
 }
 
+func (m *mockRunner) ListWindowNames(session string) ([]string, error) {
+	m.calls = append(m.calls, "ListWindowNames:"+session)
+	return m.windows[session], nil
+}
+
+func (m *mockRunner) RenameWindow(session, target, newName string) error {
+	m.calls = append(m.calls, "RenameWindow:"+session+":"+target+":"+newName)
+	return nil
+}
+
+func (m *mockRunner) SplitPane(session, window, direction string, _ int, _ string) error {
+	m.calls = append(m.calls, "SplitPane:"+session+":"+window+":"+direction)
+	return nil
+}
+
+func (m *mockRunner) Run(_ ...string) error { return nil }
+
 var errMock = &mockError{}
 
 type mockError struct{}
