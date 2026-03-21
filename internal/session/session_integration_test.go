@@ -45,15 +45,17 @@ func TestSetupCreatesAllWindows_Integration(t *testing.T) {
 		t.Fatal("expected session to exist after Setup")
 	}
 
-	// Setup creates only the integrator window (window 0 renamed).
-	// Mission-control is created post-attach by cmd/up.go.
+	// Setup creates integrator (window 0 renamed) + mission-control.
 	windows := listWindows(t, sessionName)
 
 	if !contains(windows, "integrator") {
 		t.Errorf("expected 'integrator' window, got: %v", windows)
 	}
-	if len(windows) != 1 {
-		t.Errorf("expected exactly 1 window, got %d: %v", len(windows), windows)
+	if !contains(windows, "mission-control") {
+		t.Errorf("expected 'mission-control' window, got: %v", windows)
+	}
+	if len(windows) != 2 {
+		t.Errorf("expected exactly 2 windows, got %d: %v", len(windows), windows)
 	}
 }
 
