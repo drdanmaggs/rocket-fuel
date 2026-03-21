@@ -59,6 +59,21 @@ func TeardownAll(tm tmux.Runner, sessionName string) (bool, error) {
 	return true, nil
 }
 
+// HasWindowWithPrefix checks if any window in the session has a name starting with prefix.
+// Shared by worker/reap and status to match "#N:" style worker window names.
+func HasWindowWithPrefix(tm tmux.Runner, sessionName, prefix string) bool {
+	names, err := tm.ListWindowNames(sessionName)
+	if err != nil {
+		return false
+	}
+	for _, name := range names {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
 // ListWorkerWindows returns the names of worker windows in the session.
 func ListWorkerWindows(tm tmux.Runner, sessionName string) []string {
 	names, err := tm.ListWindowNames(sessionName)
