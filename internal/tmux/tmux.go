@@ -100,6 +100,32 @@ func (c *CLI) AttachCC(session string) error {
 	return syscall.Exec(tmuxPath, args, os.Environ())
 }
 
+// Run executes an arbitrary tmux command against the socket.
+func (c *CLI) Run(args ...string) error {
+	return c.run(args...)
+}
+
+// SplitPane splits a window horizontally (side by side) or vertically (top/bottom).
+// The new pane runs the given command. Percent is the size of the new pane.
+func (c *CLI) SplitPane(session, window, direction string, percent int, command string) error {
+	target := session + ":" + window
+	dirFlag := "-h" // horizontal = side by side
+	if direction == "v" || direction == "vertical" {
+		dirFlag = "-v"
+	}
+
+	args := []string{
+		"split-window", dirFlag,
+		"-t", target,
+		"-p", fmt.Sprintf("%d", percent),
+	}
+	if command != "" {
+		args = append(args, command)
+	}
+
+	return c.run(args...)
+}
+
 // ListSessions returns the names of all tmux sessions.
 func (c *CLI) ListSessions() []string {
 	out, err := c.output("list-sessions", "-F", "#{session_name}")
