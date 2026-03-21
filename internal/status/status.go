@@ -52,9 +52,15 @@ func Gather(tm tmux.Runner, sessionName, repoDir string) (*Summary, error) {
 		name := entry.Name()
 		worktreeDir := filepath.Join(worktreesDir, name)
 
+		// Worker windows use "#N: title" format. Extract issue number
+		// from worktree dir name (worker-N) to match.
+		issueNum := strings.TrimPrefix(name, "worker-")
+		windowPrefix := "#" + issueNum + ":"
+		windowOpen := s.SessionActive && (tm.HasWindow(sessionName, name) || hasWindowWithPrefix(tm, sessionName, windowPrefix))
+
 		ws := WorkerStatus{
 			Name:       name,
-			WindowOpen: s.SessionActive && tm.HasWindow(sessionName, name),
+			WindowOpen: windowOpen,
 			Branch:     worktreeBranch(worktreeDir),
 		}
 
@@ -103,6 +109,23 @@ func Format(s *Summary) string {
 	}
 
 	return b.String()
+}
+
+func hasWindowWithPrefix(tm tmux.Runner, session, prefix string) bool {
+	cli, ok := tm.(*tmux.CLI)
+	if !ok {
+		return false
+	}
+	names, err := cli.ListWindowNames(session)
+	if err != nil {
+		return false
+	}
+	for _, name := range names {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+	return false
 }
 
 func worktreeBranch(dir string) string {
