@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/drdanmaggs/rocket-fuel/internal/dashboard"
 	"github.com/drdanmaggs/rocket-fuel/internal/missioncontrol"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
@@ -39,6 +40,11 @@ func runMissionControl(cmd *cobra.Command, _ []string) error {
 	interval, _ := cmd.Flags().GetDuration("interval")
 	dryRun, _ := cmd.Flags().GetBool("dry-run")
 
+	repoDir, err := repoRoot()
+	if err != nil {
+		return err
+	}
+
 	fns := buildMissionControlFuncs(dryRun)
 
 	if !loop {
@@ -47,6 +53,7 @@ func runMissionControl(cmd *cobra.Command, _ []string) error {
 			return err
 		}
 		printCycleResult(cmd, result)
+		recordCycleActivity(repoDir, result)
 		return nil
 	}
 
@@ -68,7 +75,7 @@ func runMissionControl(cmd *cobra.Command, _ []string) error {
 		_, _ = fmt.Fprintln(cmd.OutOrStdout(), msg)
 	}
 
-	missioncontrol.Loop(ctx, interval, fns, logFn)
+	missioncontrol.LoopWithActivity(ctx, interval, fns, logFn, repoDir)
 
 	_, _ = fmt.Fprintln(cmd.OutOrStdout(), "Mission Control offline.")
 	return nil
@@ -179,5 +186,19 @@ func printCycleResult(cmd *cobra.Command, result *missioncontrol.CycleResult) {
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "reap error: %v\n", result.ReapErr)
 	} else {
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "reap: %s\n", result.ReapResult)
+	}
+}
+
+func recordCycleActivity(repoDir string, result *missioncontrol.CycleResult) {
+	if result.DispatchErr != nil {
+		_ = dashboard.WriteActivity(repoDir, fmt.Sprintf("dispatch error: %v", result.DispatchErr))
+	} else if result.DispatchResult != "" {
+		_ = dashboard.WriteActivity(repoDir, fmt.Sprintf("dispatch: %s", result.DispatchResult))
+	}
+
+	if result.ReapErr != nil {
+		_ = dashboard.WriteActivity(repoDir, fmt.Sprintf("reap error: %v", result.ReapErr))
+	} else if result.ReapResult != "" {
+		_ = dashboard.WriteActivity(repoDir, fmt.Sprintf("reap: %s", result.ReapResult))
 	}
 }
