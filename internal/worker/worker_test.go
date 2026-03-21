@@ -56,6 +56,9 @@ func TestBuildPrompt(t *testing.T) {
 		"OAuth2 flow",
 		"/tdd",
 		"gh pr create",
+		"GUPP",
+		"Do not stop",
+		"NEVER ask",
 	}
 
 	for _, check := range checks {

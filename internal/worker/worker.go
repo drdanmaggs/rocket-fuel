@@ -83,8 +83,24 @@ func buildPrompt(issue Issue, skill string) string {
 		_, _ = fmt.Fprintf(&b, "Issue description:\n%s\n\n", issue.Body)
 	}
 
-	_, _ = fmt.Fprintf(&b, "Execute this using the %s skill. When done, create a PR with `gh pr create`.\n", skill)
-	_, _ = fmt.Fprintf(&b, "Stay focused on this single issue. Don't scope-creep.")
+	_, _ = fmt.Fprintln(&b, "## Instructions")
+	_, _ = fmt.Fprintln(&b)
+	_, _ = fmt.Fprintf(&b, "Execute this using the %s skill.\n\n", skill)
+	_, _ = fmt.Fprintln(&b, "## GUPP: Do not stop. Do not ask.")
+	_, _ = fmt.Fprintln(&b)
+	_, _ = fmt.Fprintln(&b, "You are autonomous. Execute the full cycle without stopping:")
+	_, _ = fmt.Fprintln(&b, "1. Read and understand the issue")
+	_, _ = fmt.Fprintln(&b, "2. Plan internally (do NOT present the plan for approval)")
+	_, _ = fmt.Fprintln(&b, "3. Write tests first (TDD — every change needs a failing test)")
+	_, _ = fmt.Fprintln(&b, "4. Implement the minimal fix/feature to pass the tests")
+	_, _ = fmt.Fprintln(&b, "5. Create a PR with `gh pr create`")
+	_, _ = fmt.Fprintln(&b, "6. Exit when done — do not wait for feedback")
+	_, _ = fmt.Fprintln(&b)
+	_, _ = fmt.Fprintln(&b, "NEVER ask 'Ready to implement?' or 'Should I proceed?'")
+	_, _ = fmt.Fprintln(&b, "NEVER present a plan and wait for approval.")
+	_, _ = fmt.Fprintln(&b, "NEVER sit idle after creating the PR.")
+	_, _ = fmt.Fprintln(&b)
+	_, _ = fmt.Fprintln(&b, "Stay focused on this single issue. Don't scope-creep.")
 
 	return b.String()
 }
