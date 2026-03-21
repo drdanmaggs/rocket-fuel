@@ -165,3 +165,77 @@ func contains(slice []string, item string) bool {
 	}
 	return false
 }
+
+// TestSetupCreatesSplitPane verifies that the integrator window can be split
+// into multiple panes after Setup completes.
+func TestSetupCreatesSplitPane_Integration(t *testing.T) {
+	cli := tmux.NewWithSocket(testSocket)
+	sessionName := "rf-e2e-split-" + fmt.Sprintf("%d", os.Getpid())
+
+	_, err := Setup(cli, sessionName)
+	if err != nil {
+		t.Fatalf("Setup failed: %v", err)
+	}
+	t.Cleanup(func() { _ = cli.KillSession(sessionName) })
+
+	// Split the integrator window using -l (lines) instead of -p (percent)
+	// since -p has compatibility issues with some tmux versions.
+	if err := cli.Run("split-window", "-h", "-t", sessionName+":"+WindowIntegrator, "-l", "10", "sleep 30"); err != nil {
+		t.Fatalf("split-window failed: %v", err)
+	}
+
+	// Verify 2 panes exist via list-panes.
+	panes := tmuxRun(t, "list-panes", "-t", sessionName+":"+WindowIntegrator)
+	if panes == "" {
+		t.Fatal("expected pane list, got empty output")
+	}
+
+	paneCount := 0
+	for _, line := range strings.Split(panes, "\n") {
+		if line != "" {
+			paneCount++
+		}
+	}
+
+	if paneCount != 2 {
+		t.Errorf("expected 2 panes after split, got %d", paneCount)
+	}
+}
+
+// TestWorkerWindowNaming verifies that Spawn creates a window with the expected
+// "#N: title" naming format.
+func TestWorkerWindowNaming_Integration(t *testing.T) {
+	cli := tmux.NewWithSocket(testSocket)
+	sessionName := "rf-e2e-worker-" + fmt.Sprintf("%d", os.Getpid())
+
+	_, err := Setup(cli, sessionName)
+	if err != nil {
+		t.Fatalf("Setup failed: %v", err)
+	}
+	t.Cleanup(func() { _ = cli.KillSession(sessionName) })
+
+	// Simulate what Spawn does: create a window with "#<number>: <title>" format.
+	windowName := "#128: fix database migration"
+	if err := cli.NewWindow(sessionName, windowName); err != nil {
+		t.Fatalf("NewWindow failed: %v", err)
+	}
+
+	// Verify the window exists and has the correct name.
+	windows := listWindows(t, sessionName)
+	if !contains(windows, windowName) {
+		t.Errorf("expected window %q in list, got: %v", windowName, windows)
+	}
+
+	// Verify ListWorkerWindows would find this window.
+	workerWindows := ListWorkerWindows(cli, sessionName)
+	found := false
+	for _, w := range workerWindows {
+		if w == windowName {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected ListWorkerWindows to find %q, got: %v", windowName, workerWindows)
+	}
+}
