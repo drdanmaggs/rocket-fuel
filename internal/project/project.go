@@ -2,10 +2,8 @@
 package project
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -32,13 +30,12 @@ type BoardSummary struct {
 }
 
 // FetchBoard reads the current state of a GitHub Project board.
-func FetchBoard(owner string, projectNumber int) (*BoardSummary, error) {
-	out, err := exec.CommandContext(context.Background(),
-		"gh", "project", "item-list", strconv.Itoa(projectNumber),
+func FetchBoard(run GHRunner, owner string, projectNumber int) (*BoardSummary, error) {
+	out, err := run("project", "item-list", strconv.Itoa(projectNumber),
 		"--owner", owner,
 		"--format", "json",
 		"--limit", "200",
-	).Output()
+	)
 	if err != nil {
 		return nil, fmt.Errorf("gh project item-list: %w", err)
 	}
