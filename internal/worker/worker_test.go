@@ -24,9 +24,9 @@ func TestRouteSkillFromLabels(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			got := routeSkill(tt.labels)
+			got := RouteSkill(tt.labels)
 			if got != tt.expected {
-				t.Errorf("routeSkill(%v) = %q, want %q", tt.labels, got, tt.expected)
+				t.Errorf("RouteSkill(%v) = %q, want %q", tt.labels, got, tt.expected)
 			}
 		})
 	}
