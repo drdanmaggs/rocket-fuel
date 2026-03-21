@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -114,12 +115,9 @@ func runUp(cmd *cobra.Command, _ []string) error {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", err)
 		}
 
-		// Split the integrator window: dashboard on the right (30%).
-		if err := tm.SplitPane(sessionName, session.WindowIntegrator, "h", 30, "rf dashboard"); err != nil {
-			_, _ = fmt.Fprintf(out, "  Warning: could not create dashboard pane: %v\n", err)
-		}
-		// Refocus the left pane (integrator/Claude).
-		_ = tm.Run("select-pane", "-t", sessionName+":"+session.WindowIntegrator+".0")
+		// Split the integrator window AFTER tmux -CC attaches.
+		// Panes created before -CC don't render in iTerm2.
+		spawnDashboardSplit(sessionName)
 
 		// Launch mission control in its window.
 		if err := tm.SendKeys(sessionName, session.WindowWatchdog, "rf watchdog --loop"); err != nil {
@@ -226,4 +224,18 @@ func selfUpdate(w io.Writer) {
 		_, _ = fmt.Fprintf(w, "  Updated rf: %s -> %s\n", result.OldVersion, result.NewVersion)
 		_ = syscall.Exec(binaryPath, os.Args, os.Environ())
 	}
+}
+
+// spawnDashboardSplit starts a background process that waits for -CC to attach,
+// then splits the integrator window with the dashboard.
+func spawnDashboardSplit(sessionName string) {
+	script := fmt.Sprintf(
+		`sleep 3 && tmux split-window -t %s:%s -h -p 30 'rf dashboard' && tmux select-pane -t %s:%s.0`,
+		sessionName, session.WindowIntegrator,
+		sessionName, session.WindowIntegrator,
+	)
+
+	cmd := exec.CommandContext(context.Background(), "bash", "-c", script)
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	_ = cmd.Start()
 }
