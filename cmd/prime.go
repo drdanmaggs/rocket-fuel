@@ -49,7 +49,7 @@ func runPrime(cmd *cobra.Command, _ []string) error {
 
 	// Load board state (optional — project may not be linked).
 	if cfg, loadErr := loadProjectConfig(); loadErr == nil {
-		board, fetchErr := project.FetchBoard(cfg.Owner, cfg.ProjectNumber)
+		board, fetchErr := project.FetchBoard(ghRunner, cfg.Owner, cfg.ProjectNumber)
 		if fetchErr == nil {
 			in.Board = board
 		}
