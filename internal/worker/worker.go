@@ -74,14 +74,12 @@ func RouteSkill(labels []string) string {
 }
 
 // buildPrompt creates the prompt string for Claude Code.
+// Passes issue number only — the worker reads the full issue via gh CLI.
 func buildPrompt(issue Issue, skill string) string {
 	var b strings.Builder
 
 	_, _ = fmt.Fprintf(&b, "You are a Rocket Fuel worker. Your task is issue #%d: %s\n\n", issue.Number, issue.Title)
-
-	if issue.Body != "" {
-		_, _ = fmt.Fprintf(&b, "Issue description:\n%s\n\n", issue.Body)
-	}
+	_, _ = fmt.Fprintf(&b, "Run `gh issue view %d` to read the full issue details.\n\n", issue.Number)
 
 	_, _ = fmt.Fprintln(&b, "## Instructions")
 	_, _ = fmt.Fprintln(&b)
