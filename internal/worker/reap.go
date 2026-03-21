@@ -21,7 +21,10 @@ type ReapResult struct {
 // Reap finds completed workers and cleans up their worktrees and tmux windows.
 // A worker is considered complete when its tmux window no longer exists
 // in the main session (Claude Code session ended).
-func Reap(tm tmux.Runner, sessionName, repoDir string) ([]ReapResult, error) {
+// If dryRun is true, reports what would be reaped without deleting.
+func Reap(tm tmux.Runner, sessionName, repoDir string, dryRun ...bool) ([]ReapResult, error) {
+	isDryRun := len(dryRun) > 0 && dryRun[0]
+	_ = isDryRun // used below
 	worktreesDir := filepath.Join(repoDir, ".worktrees")
 
 	entries, err := os.ReadDir(worktreesDir)
@@ -55,6 +58,16 @@ func Reap(tm tmux.Runner, sessionName, repoDir string) ([]ReapResult, error) {
 			continue
 		}
 
+		if isDryRun {
+			results = append(results, ReapResult{
+				WindowName:  name,
+				WorktreeDir: worktreeDir,
+				Reaped:      false,
+				Reason:      "would reap (dry-run)",
+			})
+			continue
+		}
+
 		// Window is gone — clean up the worktree.
 		if err := removeWorktree(repoDir, worktreeDir); err != nil {
 			results = append(results, ReapResult{
@@ -74,7 +87,9 @@ func Reap(tm tmux.Runner, sessionName, repoDir string) ([]ReapResult, error) {
 		})
 	}
 
-	_ = pruneWorktrees(repoDir)
+	if !isDryRun {
+		_ = pruneWorktrees(repoDir)
+	}
 
 	return results, nil
 }

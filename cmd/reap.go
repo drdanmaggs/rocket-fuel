@@ -28,10 +28,11 @@ func runReap(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("find repo root: %w", err)
 	}
 
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
 	tm := tmux.New()
 	sessionName := session.DefaultSessionName
 
-	results, err := worker.Reap(tm, sessionName, repoDir)
+	results, err := worker.Reap(tm, sessionName, repoDir, dryRun)
 	if err != nil {
 		return fmt.Errorf("reap failed: %w", err)
 	}
