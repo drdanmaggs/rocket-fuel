@@ -22,7 +22,7 @@ func init() {
 	rootCmd.AddCommand(mergeSafetyCmd)
 }
 
-func runMergeSafety(cmd *cobra.Command, _ []string) error {
+func runMergeSafety(_ *cobra.Command, _ []string) error {
 	// Read the tool input from stdin (Claude Code sends it as JSON).
 	var input struct {
 		ToolInput struct {
