@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
@@ -106,7 +107,10 @@ type ghLabel struct {
 }
 
 func fetchIssue(number int) (*worker.Issue, error) {
-	out, err := exec.CommandContext(context.Background(), "gh", "issue", "view", strconv.Itoa(number), "--json", "number,title,body,labels").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx, "gh", "issue", "view", strconv.Itoa(number), "--json", "number,title,body,labels").Output()
 	if err != nil {
 		return nil, fmt.Errorf("gh issue view: %w", err)
 	}

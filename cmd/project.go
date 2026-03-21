@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
 	"github.com/spf13/cobra"
@@ -171,7 +172,10 @@ func discoverAndSaveProject() (*project.Config, error) {
 }
 
 func repoOwnerAndName() (string, string, error) {
-	out, err := exec.CommandContext(context.Background(),
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx,
 		"gh", "repo", "view", "--json", "owner,name",
 	).Output()
 	if err != nil {

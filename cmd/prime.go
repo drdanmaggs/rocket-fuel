@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/prime"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
@@ -67,7 +68,10 @@ func runPrime(cmd *cobra.Command, _ []string) error {
 }
 
 func primeCurrentBranch() string {
-	out, err := exec.CommandContext(context.Background(), "git", "branch", "--show-current").Output()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	out, err := exec.CommandContext(ctx, "git", "branch", "--show-current").Output()
 	if err != nil {
 		return ""
 	}
