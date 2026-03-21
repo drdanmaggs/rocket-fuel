@@ -59,6 +59,19 @@ func EnsureClaudeSettings(repoDir string) error {
 		},
 	}
 
+	// Set PostToolUse hook to track worker activity for stuck detection.
+	hooks["PostToolUse"] = []map[string]interface{}{
+		{
+			"matcher": "",
+			"hooks": []map[string]interface{}{
+				{
+					"type":    "command",
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf record-activity`,
+				},
+			},
+		},
+	}
+
 	// Set SessionEnd hook for instant worker completion detection.
 	hooks["SessionEnd"] = []map[string]interface{}{
 		{
