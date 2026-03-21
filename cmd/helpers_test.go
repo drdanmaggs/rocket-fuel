@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/drdanmaggs/rocket-fuel/internal/project"
 )
 
 func TestParseIssueRef_plainNumber(t *testing.T) {
@@ -161,3 +163,55 @@ func TestLoadMaxWorkers_defaultOnZeroValue(t *testing.T) {
 		t.Errorf("expected default %d for zero value, got %d", defaultMaxWorkers, got)
 	}
 }
+
+func TestFetchIssue_parsesGHOutput(t *testing.T) {
+	t.Parallel()
+
+	mockGH := func(_ ...string) ([]byte, error) {
+		return []byte(`{"number":42,"title":"Fix bug","body":"Details","labels":[{"name":"bug"}]}`), nil
+	}
+
+	issue, err := fetchIssueWith(mockGH, 42)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if issue.Number != 42 {
+		t.Errorf("expected number 42, got %d", issue.Number)
+	}
+	if issue.Title != "Fix bug" {
+		t.Errorf("expected title 'Fix bug', got %q", issue.Title)
+	}
+	if len(issue.Labels) != 1 || issue.Labels[0] != "bug" {
+		t.Errorf("expected labels [bug], got %v", issue.Labels)
+	}
+}
+
+func TestCheckPRForBranch_findsPR(t *testing.T) {
+	t.Parallel()
+
+	mockGH := func(_ ...string) ([]byte, error) {
+		return []byte(`[{"number":99,"title":"My PR","url":"https://github.com/x/y/pull/99"}]`), nil
+	}
+
+	result := checkPRForBranchWith(mockGH, "rf/issue-42")
+	if result != "PR #99: My PR" {
+		t.Errorf("expected 'PR #99: My PR', got %q", result)
+	}
+}
+
+func TestCheckPRForBranch_noPR(t *testing.T) {
+	t.Parallel()
+
+	mockGH := func(_ ...string) ([]byte, error) {
+		return []byte(`[]`), nil
+	}
+
+	result := checkPRForBranchWith(mockGH, "rf/issue-42")
+	if result != "" {
+		t.Errorf("expected empty string, got %q", result)
+	}
+}
+
+// Ensure the type satisfies project.GHRunner at compile time.
+var _ project.GHRunner = func(_ ...string) ([]byte, error) { return nil, nil }
