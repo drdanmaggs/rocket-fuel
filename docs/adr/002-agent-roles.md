@@ -102,7 +102,7 @@ Rocket Fuel implements the Visionary/Integrator model from *Rocket Fuel* by Gino
 
 ---
 
-### Ground Control (Stream Deck plugin, separate repo)
+### Mission Control (Stream Deck plugin, separate repo)
 
 **What they own:** Physical dashboard and tactile interface.
 
@@ -116,7 +116,7 @@ Rocket Fuel implements the Visionary/Integrator model from *Rocket Fuel* by Gino
 - Make decisions (pure display + input routing)
 
 **Interface:** Elgato Stream Deck → WebSocket → `rf streamdeck serve`
-**Repo:** github.com/drdanmaggs/ground-control
+**Repo:** github.com/drdanmaggs/mission-control
 
 ---
 

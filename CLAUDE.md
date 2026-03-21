@@ -10,7 +10,7 @@ Read `docs/vision.md` for the full concept, `docs/gastown-lessons.md` for prior 
 - **Integrator** = AI agent (Claude Code, runs continuously). Owns execution (how/when). Manages board, dispatches workers, reviews PRs. Never scopes issues — surfaces vague ones to the Visionary. Can call meetings when it needs the Visionary's input.
 - **Watchdog** = Go daemon (background). Keeps agents alive, detects stuck workers, reaps completed ones. No decisions — purely mechanical. Event-driven via Claude Code hooks.
 - **Workers** = ephemeral Claude Code instances in git worktrees. Run skills (`/tdd`, `/bug-fix`, `/epc`) on assigned issues. Fully autonomous (GUPP).
-- **Ground Control** = Stream Deck plugin (separate repo: `drdanmaggs/ground-control`). Physical dashboard for the Visionary.
+- **Mission Control** = Stream Deck plugin (separate repo: `drdanmaggs/mission-control`). Physical dashboard for the Visionary.
 
 See `docs/adr/002-agent-roles.md` for full role definitions and boundaries.
 
@@ -34,7 +34,7 @@ This means:
 
 - gastown (prior art): `~/.claude/gastown` — explore for architectural patterns but do NOT copy its complexity. See `docs/gastown-lessons.md` for what to steal vs skip.
 - family-meal-planner-v3: `~/family-meal-planner-v3` — reference for mature CI, testing, git hygiene patterns (translated from TypeScript to Go).
-- **ground-control**: `~/ground-control` (repo: `drdanmaggs/ground-control`) — Stream Deck plugin for Rocket Fuel. Physical mission control dashboard. Separate repo (Node.js, Elgato SDK). Rocket Fuel exposes state via `rf streamdeck serve`, ground-control renders it on Stream Deck buttons.
+- **mission-control**: `~/mission-control` (repo: `drdanmaggs/mission-control`) — Stream Deck plugin for Rocket Fuel. Physical mission control dashboard. Separate repo (Node.js, Elgato SDK). Rocket Fuel exposes state via `rf streamdeck serve`, mission-control renders it on Stream Deck buttons.
 
 ## Development
 
