@@ -1,21 +1,21 @@
-# ADR-003: Ground Control — Physical Dashboard
+# ADR-003: Mission Control — Physical Dashboard
 
 ## Status: Active
 
 ## Context
 
-The Visionary needs ambient awareness of system state without constantly checking tabs. Ground Control is a Stream Deck plugin that makes the invisible visible — physical buttons that glow, pulse, and flash.
+The Visionary needs ambient awareness of system state without constantly checking tabs. Mission Control is a Stream Deck plugin that makes the invisible visible — physical buttons that glow, pulse, and flash.
 
 ## Repository
 
-`github.com/drdanmaggs/ground-control` (Node.js, Elgato SDK)
+`github.com/drdanmaggs/mission-control` (Node.js, Elgato SDK)
 
-Rocket Fuel exposes state via `rf streamdeck serve` (Go, HTTP/WebSocket). Ground Control is pure UI — all logic stays in Go.
+Rocket Fuel exposes state via `rf streamdeck serve` (Go, HTTP/WebSocket). Mission Control is pure UI — all logic stays in Go.
 
 ## Architecture
 
 ```
-Stream Deck App ←WebSocket→ Ground Control plugin (JS) ←HTTP/WS→ rf streamdeck serve (Go)
+Stream Deck App ←WebSocket→ Mission Control plugin (JS) ←HTTP/WS→ rf streamdeck serve (Go)
 ```
 
 ## Features

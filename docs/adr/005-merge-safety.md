@@ -55,7 +55,7 @@ Replace the permission prompt with a **PreToolUse hook** that programmatically e
 - CI must be comprehensive (unit + integration + e2e)
 - The Visionary can still review PRs manually via GitHub
 - `gh pr merge --squash` preserves revert capability
-- Ground Control shows PR status — Visionary has ambient awareness
+- Mission Control shows PR status — Visionary has ambient awareness
 
 ## Why not an approval queue?
 
@@ -65,4 +65,4 @@ The original plan was a dashboard-based approval queue where the Visionary manua
 
 - ADR-001 (Hooks): PreToolUse is one of the 22 hook types
 - ADR-002 (Roles): Watchdog enforces rules, Integrator makes decisions
-- ADR-003 (Ground Control): Stream Deck shows merge status for ambient awareness
+- ADR-003 (Mission Control): Stream Deck shows merge status for ambient awareness
