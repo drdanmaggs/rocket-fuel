@@ -27,13 +27,13 @@ Files: `internal/worker/worker.go`, `internal/worker/worker_test.go`
 - [x] BuildRestartCommand fetches issue title and routes skill from labels
 
 ## Slice 3: Worker cycle — background kill + restart
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `cmd/precompact.go`, `internal/worker/cycle.go` (new), `internal/worker/cycle_test.go` (new)
 Builds on: Slice 1 + 2
 
-- [ ] runPrecompactWith spawns background process for Worker role (returns nil immediately)
-- [ ] CycleWorker builds correct background script (Ctrl-C, sleep, restart command)
-- [ ] CycleWorker extracts issue number from worktree cwd
+- [x] runPrecompactWith spawns background process for Worker role (returns nil immediately)
+- [x] CycleWorker builds correct background script (Ctrl-C, sleep, restart command)
+- [x] CycleWorker extracts issue number from worktree cwd
 
 ## Slice 4: Update PreCompact hook + docs
 Type: unit + docs | Status: pending
