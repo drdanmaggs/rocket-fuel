@@ -15,9 +15,8 @@ func TestWritePrimeContext_createsFile(t *testing.T) {
 
 	dir := t.TempDir()
 	input := &prime.Input{
-		IntegratorPrompt: "You are the Integrator.",
-		RepoDir:          dir,
-		Branch:           "main",
+		RepoDir: dir,
+		Branch:  "main",
 	}
 
 	path, err := WritePrimeContext(dir, input)
@@ -36,9 +35,6 @@ func TestWritePrimeContext_createsFile(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "You are the Integrator.") {
-		t.Error("expected integrator prompt in context file")
-	}
 	if !strings.Contains(content, "main") {
 		t.Error("expected branch name in context file")
 	}

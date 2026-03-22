@@ -3,9 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -40,12 +38,6 @@ func runPrime(cmd *cobra.Command, _ []string) error {
 	in := &prime.Input{
 		RepoDir: repoDir,
 		Branch:  primeCurrentBranch(),
-	}
-
-	// Load integrator prompt.
-	promptPath := filepath.Join(repoDir, "prompts", "integrator.md")
-	if data, readErr := os.ReadFile(promptPath); readErr == nil {
-		in.IntegratorPrompt = string(data)
 	}
 
 	// Load board state (optional — project may not be linked).

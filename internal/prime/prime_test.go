@@ -8,21 +8,6 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
 )
 
-func TestBuild_includesIntegratorPrompt(t *testing.T) {
-	t.Parallel()
-
-	prompt := "You are the Integrator."
-	input := &Input{
-		IntegratorPrompt: prompt,
-	}
-
-	got := Build(input)
-
-	if !strings.Contains(got, prompt) {
-		t.Errorf("expected output to contain integrator prompt, got:\n%s", got)
-	}
-}
-
 func TestBuild_includesBoardState(t *testing.T) {
 	t.Parallel()
 
@@ -109,7 +94,6 @@ func TestBuild_missingBoardOmitsSection(t *testing.T) {
 	t.Parallel()
 
 	input := &Input{
-		IntegratorPrompt: "You are the Integrator.",
 		// Board is nil — no project linked
 	}
 
@@ -117,9 +101,6 @@ func TestBuild_missingBoardOmitsSection(t *testing.T) {
 
 	if strings.Contains(got, "## Board") {
 		t.Error("expected no Board section when board is nil")
-	}
-	if !strings.Contains(got, "You are the Integrator.") {
-		t.Error("expected integrator prompt even without board")
 	}
 }
 
@@ -143,11 +124,40 @@ func TestBuild_missingWorkersShowsNone(t *testing.T) {
 	}
 }
 
+func TestBuild_doesNotIncludeStaticIntegratorPrompt(t *testing.T) {
+	t.Parallel()
+
+	input := &Input{
+		// No IntegratorPrompt — dynamic state only.
+		Board: &project.BoardSummary{
+			Columns: map[string][]project.Item{
+				"Scoped": {{Number: 10, Title: "Test issue"}},
+			},
+		},
+		RepoDir: "/home/user/project",
+		Branch:  "main",
+	}
+
+	got := Build(input)
+
+	// Build should NOT inject the embedded integrator personality prompt.
+	if strings.Contains(got, "# Integrator Agent") {
+		t.Error("expected output to NOT contain static integrator prompt (# Integrator Agent)")
+	}
+
+	// Build should still contain dynamic state sections.
+	if !strings.Contains(got, "## Board") {
+		t.Error("expected output to contain ## Board section")
+	}
+	if !strings.Contains(got, "## Repo") {
+		t.Error("expected output to contain ## Repo section")
+	}
+}
+
 func TestBuild_fullAssemblyOrdersCorrectly(t *testing.T) {
 	t.Parallel()
 
 	input := &Input{
-		IntegratorPrompt: "PROMPT_SECTION",
 		Board: &project.BoardSummary{
 			Columns: map[string][]project.Item{
 				"Scoped": {{Number: 1, Title: "Issue one"}},
@@ -165,17 +175,16 @@ func TestBuild_fullAssemblyOrdersCorrectly(t *testing.T) {
 
 	got := Build(input)
 
-	// Verify section ordering: prompt → board → workers → repo.
-	promptIdx := strings.Index(got, "PROMPT_SECTION")
+	// Verify section ordering: board → workers → repo.
 	boardIdx := strings.Index(got, "## Board")
 	workersIdx := strings.Index(got, "## Workers")
 	repoIdx := strings.Index(got, "## Repo")
 
-	if promptIdx < 0 || boardIdx < 0 || workersIdx < 0 || repoIdx < 0 {
+	if boardIdx < 0 || workersIdx < 0 || repoIdx < 0 {
 		t.Fatalf("missing section(s) in output:\n%s", got)
 	}
-	if promptIdx >= boardIdx || boardIdx >= workersIdx || workersIdx >= repoIdx {
-		t.Errorf("sections out of order: prompt=%d board=%d workers=%d repo=%d",
-			promptIdx, boardIdx, workersIdx, repoIdx)
+	if boardIdx >= workersIdx || workersIdx >= repoIdx {
+		t.Errorf("sections out of order: board=%d workers=%d repo=%d",
+			boardIdx, workersIdx, repoIdx)
 	}
 }
