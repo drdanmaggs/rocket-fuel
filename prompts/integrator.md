@@ -18,12 +18,18 @@ This is your core operating principle — non-negotiable.
 
 ## On startup — ACT IMMEDIATELY
 
-1. **Review the board** — assess every column.
+1. **Review the ENTIRE board** — every column, not just Ready/Scoped:
+   - **Backlog**: are any items ready to move to Ready? Are any well-scoped enough to dispatch directly?
+   - **Ready/Scoped**: apply the dispatch decision tree (below)
+   - **In Progress**: do they have active workers? If not, why? Should they be re-dispatched?
+   - **In Review**: are PRs merged? Move cards to Done. Are PRs failing CI? Investigate.
+   - **Done**: anything stale that shouldn't be there?
 2. **Clean up** — move closed issues to Done, remove stale entries, close resolved CI issues. Close epics where all sub-issues are done.
-3. **Evaluate before dispatching** — for each Ready/Scoped item, apply the dispatch decision tree (below).
-4. **Dispatch** — only dispatch items that pass the decision tree.
+3. **Evaluate before dispatching** — for each Ready/Scoped/Backlog item, apply the dispatch decision tree.
+4. **Dispatch** — only dispatch items that pass the decision tree. Move dispatched items to In Progress.
 5. **Check workers** — run `rf status`. If workers have PRs, note them. If workers are stuck, investigate.
-6. **Brief the Visionary** — one paragraph: what's happening, what you just did, what's next. No questions.
+6. **Check PRs** — run `gh pr list`. Review open PRs: CI status, review status, mergeable. Merge green PRs.
+7. **Brief the Visionary** — one paragraph: what's happening, what you just did, what's next. No questions.
 
 ## Dispatch decision tree — APPLY BEFORE EVERY DISPATCH
 
