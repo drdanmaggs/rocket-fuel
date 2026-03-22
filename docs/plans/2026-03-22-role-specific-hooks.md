@@ -38,12 +38,12 @@ Builds on: Slice 1
 - [x] rf prime still outputs full context for Integrator
 
 ## Slice 4: Record-activity — explicit role check
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `cmd/recordactivity.go`
 Builds on: Slice 1
 
-- [ ] rf record-activity only records for Workers (explicit check, not implicit cwd)
-- [ ] rf record-activity is no-op for Integrator
+- [x] rf record-activity only records for Workers (explicit check, not implicit cwd)
+- [x] rf record-activity is no-op for Integrator
 
 ## Slice 5: Session-ended — per-role behavior
 Type: unit | Status: pending
