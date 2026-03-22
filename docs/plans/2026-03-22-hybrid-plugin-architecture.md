@@ -65,10 +65,10 @@ Builds on: Slice 1 (not Slice 3 — independent)
 - [x] Skill is extracted as part of plugin
 
 ## Slice 5: ADRs + CLAUDE.md update
-Type: docs | Status: pending
+Type: docs | Status: done
 Files: `docs/adr/006-hybrid-plugin-architecture.md` (new), `docs/adr/007-dedicated-board-per-repo.md` (new), `CLAUDE.md`
 Builds on: nothing (parallel)
 
-- [ ] ADR-006 documents hybrid plugin decision: context, alternatives (pure Go / pure plugin / hybrid), decision, scope split (agents+skills in plugin, hooks stay project-scoped), migration path
-- [ ] ADR-007 documents board-per-repo decision: context, column structure, relationship to #68
-- [ ] CLAUDE.md updated with plugin structure, agent references, new architecture
+- [x] ADR-006 documents hybrid plugin decision: context, alternatives (pure Go / pure plugin / hybrid), decision, scope split (agents+skills in plugin, hooks stay project-scoped), migration path
+- [x] ADR-007 documents board-per-repo decision: context, column structure, relationship to #68
+- [x] CLAUDE.md updated with plugin structure, agent references, new architecture
