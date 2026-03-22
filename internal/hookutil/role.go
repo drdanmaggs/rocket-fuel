@@ -21,9 +21,9 @@ func DetectRole(input io.Reader) Role {
 		return RoleIntegrator // Default fallback
 	}
 
-	if data.AgentType == "integrator" {
-		return RoleIntegrator
+	if data.AgentType == string(RoleWorker) {
+		return RoleWorker
 	}
 
-	return RoleIntegrator // Default fallback for now
+	return RoleIntegrator // Default: treat unknown as Integrator
 }
