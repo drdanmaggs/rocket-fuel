@@ -24,6 +24,20 @@ This means:
 - Document decisions in commit messages and ADRs when significant
 - The code must be correct, tested, and well-structured — the human trusts you to get it right
 
+## Architecture: Hybrid Plugin Model
+
+See `docs/adr/006-hybrid-plugin-architecture.md` for full rationale.
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Agent definitions | `internal/plugin/agents/` | Integrator + Worker personalities (extracted to `~/.claude/plugins/rocket-fuel/`) |
+| Skills | `internal/plugin/skills/` | Board-setup, dispatch workflows (extracted to plugin) |
+| Hooks | `.claude/settings.json` per repo | Project-scoped lifecycle hooks (installed by `rf launch`) |
+| Hook handlers | `cmd/*.go` | `rf prime`, `rf should-continue`, etc. |
+| Orchestration | `cmd/`, `internal/` | tmux, worktrees, watchdog, dashboard |
+
+Plugin files are embedded via `go:embed` and extracted on every `rf launch`. Always-overwrite — fork to customize.
+
 ## Stack
 
 - **Language:** Go
