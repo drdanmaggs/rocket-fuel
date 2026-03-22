@@ -34,16 +34,16 @@ Files: `internal/plugin/.claude-plugin/plugin.json` (new), `internal/plugin/extr
 - [x] rf launch calls ExtractPlugin before session setup (warning on failure, not fatal)
 
 ## Slice 2: Integrator agent definition
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `plugin/agents/integrator.md` (new), `internal/launch/launch.go`, `internal/prime/prime.go`, `internal/prime/prime_test.go`
 Builds on: Slice 1
 
 - [x] Integrator agent file has valid YAML frontmatter (name, description, tools)
 - [x] Integrator prompt content preserved from current internal/prime/integrator.md
 - [x] IntegratorCommand returns claude invocation referencing the plugin agent
-- [ ] prime.Build no longer includes static integrator prompt (only dynamic state: board, workers, repo)
-- [ ] go:embed of integrator.md removed from prime.go
-- [ ] internal/prime/integrator.md deleted (single source of truth is plugin/agents/integrator.md)
+- [x] prime.Build no longer includes static integrator prompt (only dynamic state: board, workers, repo)
+- [x] go:embed of integrator.md removed from prime.go
+- [x] internal/prime/integrator.md deleted (single source of truth is plugin/agents/integrator.md)
 
 ## Slice 3: Worker agent definition
 Type: unit | Status: pending
