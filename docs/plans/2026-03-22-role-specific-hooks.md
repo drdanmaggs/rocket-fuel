@@ -30,12 +30,12 @@ Builds on: Slice 1
 - [x] rf should-continue still blocks when role is Integrator and work exists
 
 ## Slice 3: Prime hook — simplified for Workers
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `cmd/prime.go`, `internal/prime/prime.go`
 Builds on: Slice 1
 
-- [ ] rf prime outputs only repo context for Workers (no board state, no worker status)
-- [ ] rf prime still outputs full context for Integrator
+- [x] rf prime outputs only repo context for Workers (no board state, no worker status)
+- [x] rf prime still outputs full context for Integrator
 
 ## Slice 4: Record-activity — explicit role check
 Type: unit | Status: pending
