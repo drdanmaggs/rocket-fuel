@@ -28,8 +28,8 @@ Type: unit | Status: pending
 Files: `plugin/.claude-plugin/plugin.json` (new), `internal/plugin/extract.go` (new), `internal/plugin/extract_test.go` (new), `cmd/up.go`
 
 - [x] ExtractPlugin(targetDir) creates plugin directory structure at the given path
-- [ ] Extraction creates .claude-plugin/plugin.json with valid manifest (name, version, description fields)
-- [ ] Extraction overwrites existing files on every call (always-overwrite strategy)
+- [x] Extraction creates .claude-plugin/plugin.json with valid manifest (name, version, description fields)
+- [x] Extraction overwrites existing files on every call (always-overwrite strategy)
 - [ ] ExtractPlugin returns error if target directory is not writable
 - [ ] rf launch calls ExtractPlugin before session setup (warning on failure, not fatal)
 
