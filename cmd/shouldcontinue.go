@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 
+	"github.com/drdanmaggs/rocket-fuel/internal/hookutil"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
@@ -23,6 +25,16 @@ func init() {
 }
 
 func runShouldContinue(_ *cobra.Command, _ []string) error {
+	return runShouldContinueWith(os.Stdin)
+}
+
+func runShouldContinueWith(input io.Reader) error {
+	// If the caller is a Worker, allow stop immediately (don't check board or workers).
+	role := hookutil.DetectRole(input)
+	if role == hookutil.RoleWorker {
+		return nil
+	}
+
 	repoDir, err := repoRoot()
 	if err != nil {
 		// Not in a repo — allow stop.

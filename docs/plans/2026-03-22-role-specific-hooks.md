@@ -22,12 +22,12 @@ Files: `internal/hookutil/role.go` (new), `internal/hookutil/role_test.go` (new)
 - [x] DetectRole returns Integrator when agent_type is empty and cwd is repo root (fallback)
 
 ## Slice 2: Stop hook — no-op for Workers
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `cmd/shouldcontinue.go`
 Builds on: Slice 1
 
-- [ ] rf should-continue exits 0 (allow stop) when role is Worker
-- [ ] rf should-continue still blocks when role is Integrator and work exists
+- [x] rf should-continue exits 0 (allow stop) when role is Worker
+- [x] rf should-continue still blocks when role is Integrator and work exists
 
 ## Slice 3: Prime hook — simplified for Workers
 Type: unit | Status: pending
