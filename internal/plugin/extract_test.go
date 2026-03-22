@@ -88,3 +88,27 @@ func TestExtractPlugin_overwritesExistingFilesOnEveryCall(t *testing.T) {
 		t.Errorf("expected plugin.json to have real manifest name, got %q", name)
 	}
 }
+
+func TestExtractPlugin_returnsErrorIfTargetDirectoryIsNotWritable(t *testing.T) {
+	t.Parallel()
+
+	// Arrange: create a read-only directory so MkdirAll fails for subdirectories
+	readOnlyDir := t.TempDir()
+	if err := os.Chmod(readOnlyDir, 0o555); err != nil {
+		t.Fatalf("failed to set read-only permissions: %v", err)
+	}
+	t.Cleanup(func() {
+		// Restore write permission so t.TempDir() cleanup can remove the directory
+		os.Chmod(readOnlyDir, 0o755) //nolint:errcheck
+	})
+
+	unwritablePath := filepath.Join(readOnlyDir, "subdir")
+
+	// Act
+	err := plugin.ExtractPlugin(unwritablePath)
+
+	// Assert
+	if err == nil {
+		t.Fatal("expected ExtractPlugin to return an error for unwritable directory, got nil")
+	}
+}

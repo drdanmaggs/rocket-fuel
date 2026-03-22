@@ -30,7 +30,7 @@ Files: `plugin/.claude-plugin/plugin.json` (new), `internal/plugin/extract.go` (
 - [x] ExtractPlugin(targetDir) creates plugin directory structure at the given path
 - [x] Extraction creates .claude-plugin/plugin.json with valid manifest (name, version, description fields)
 - [x] Extraction overwrites existing files on every call (always-overwrite strategy)
-- [ ] ExtractPlugin returns error if target directory is not writable
+- [x] ExtractPlugin returns error if target directory is not writable
 - [ ] rf launch calls ExtractPlugin before session setup (warning on failure, not fatal)
 
 ## Slice 2: Integrator agent definition
