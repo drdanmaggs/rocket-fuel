@@ -28,10 +28,10 @@ Builds on: Slice 1
 - [x] Skills with references/ subdirectories extract correctly (verify tdd/references/ exists)
 
 ## Slice 3: Add rules support
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `internal/plugin/rules/*.md` (8 new), `internal/plugin/extract.go`, `internal/plugin/extract_test.go`, `CLAUDE.md`
 Builds on: Slice 2
 
-- [ ] extract.go embeds and extracts rules/ directory
-- [ ] All 8 rule files present after extraction
-- [ ] CLAUDE.md updated with rules in plugin architecture table
+- [x] extract.go embeds and extracts rules/ directory
+- [x] All 8 rule files present after extraction
+- [x] CLAUDE.md updated with rules in plugin architecture table

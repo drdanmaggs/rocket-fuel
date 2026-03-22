@@ -30,8 +30,9 @@ See `docs/adr/006-hybrid-plugin-architecture.md` for full rationale.
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| Agent definitions | `internal/plugin/agents/` | Integrator + Worker personalities (extracted to `~/.claude/plugins/rocket-fuel/`) |
-| Skills | `internal/plugin/skills/` | Board-setup, dispatch workflows (extracted to plugin) |
+| Agent definitions | `internal/plugin/agents/` (17 agents) | Integrator, Worker, TDD subagents, code-reviewer subagents, etc. |
+| Skills | `internal/plugin/skills/` (26 skills) | /tdd, /ship, /code-reviewer, /issue-scope, board-setup, etc. |
+| Rules | `internal/plugin/rules/` (8 rules) | testing, commit-discipline, code-quality, etc. |
 | Hooks | `.claude/settings.json` per repo | Project-scoped lifecycle hooks (installed by `rf launch`) |
 | Hook handlers | `cmd/*.go` | `rf prime`, `rf should-continue`, etc. |
 | Orchestration | `cmd/`, `internal/` | tmux, worktrees, watchdog, dashboard |
