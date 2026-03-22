@@ -1,9 +1,12 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"syscall"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/hookutil"
 	"github.com/drdanmaggs/rocket-fuel/internal/prime"
@@ -11,6 +14,7 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
+	"github.com/drdanmaggs/rocket-fuel/internal/worker"
 	"github.com/spf13/cobra"
 )
 
@@ -33,8 +37,23 @@ func runPrecompactWith(input io.Reader, out io.Writer) error {
 	// Detect role from input (usually Claude Code hook JSON).
 	role := hookutil.DetectRole(input)
 
-	// Workers don't need to do anything on precompact yet.
+	// Workers get session cycling — kill and restart with fresh context.
 	if role == hookutil.RoleWorker {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil // can't determine worktree, skip cycling
+		}
+
+		script, err := worker.CycleWorker(cwd, session.DefaultSessionName)
+		if err != nil {
+			return nil // not in a worker worktree, skip
+		}
+
+		// Spawn background process — same pattern as spawnDashboardSplit.
+		cmd := exec.CommandContext(context.Background(), "bash", "-c", script)
+		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+		_ = cmd.Start()
+
 		return nil
 	}
 
