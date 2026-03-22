@@ -14,6 +14,9 @@ var pluginJSON []byte
 //go:embed all:agents
 var agentsFS embed.FS
 
+//go:embed all:skills
+var skillsFS embed.FS
+
 // ExtractPlugin extracts the Claude plugin files to the given target directory.
 func ExtractPlugin(targetDir string) error {
 	// Create the .claude-plugin directory
@@ -30,6 +33,11 @@ func ExtractPlugin(targetDir string) error {
 
 	// Extract agents directory
 	if err := extractDir(agentsFS, "agents", filepath.Join(targetDir, "agents")); err != nil {
+		return err
+	}
+
+	// Extract skills directory
+	if err := extractDir(skillsFS, "skills", filepath.Join(targetDir, "skills")); err != nil {
 		return err
 	}
 

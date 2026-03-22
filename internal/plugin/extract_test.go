@@ -144,6 +144,120 @@ func TestExtractPlugin_createsIntegratorAgentFileWithValidYAMLFrontmatter(t *tes
 	}
 }
 
+func TestExtractPlugin_createsWorkerAgentFileWithValidYAMLFrontmatter(t *testing.T) {
+	t.Parallel()
+
+	targetDir := t.TempDir()
+
+	// Act
+	err := plugin.ExtractPlugin(targetDir)
+	if err != nil {
+		t.Fatalf("ExtractPlugin() returned unexpected error: %v", err)
+	}
+
+	// Assert: agents/worker.md exists
+	agentPath := filepath.Join(targetDir, "agents", "worker.md")
+	data, err := os.ReadFile(agentPath)
+	if err != nil {
+		t.Fatalf("expected agents/worker.md to exist, got error: %v", err)
+	}
+
+	content := string(data)
+
+	// Assert: file has YAML frontmatter between --- delimiters
+	if !strings.HasPrefix(content, "---\n") {
+		t.Fatal("agents/worker.md does not start with YAML frontmatter delimiter '---'")
+	}
+
+	// Extract frontmatter between first and second ---
+	rest := content[4:] // skip first "---\n"
+	endIdx := strings.Index(rest, "\n---")
+	if endIdx == -1 {
+		t.Fatal("agents/worker.md missing closing YAML frontmatter delimiter '---'")
+	}
+	frontmatter := rest[:endIdx]
+
+	// Parse YAML frontmatter
+	var meta map[string]interface{}
+	if err := yaml.Unmarshal([]byte(frontmatter), &meta); err != nil {
+		t.Fatalf("YAML frontmatter is not valid YAML: %v", err)
+	}
+
+	// Assert: required string fields
+	for _, field := range []string{"name", "description"} {
+		val, ok := meta[field]
+		if !ok {
+			t.Errorf("frontmatter missing required field %q", field)
+			continue
+		}
+		str, ok := val.(string)
+		if !ok || str == "" {
+			t.Errorf("frontmatter field %q should be a non-empty string, got %v", field, val)
+		}
+	}
+}
+
+func TestExtractPlugin_createsBoardSetupSkillWithValidFrontmatterAndColumnNames(t *testing.T) {
+	t.Parallel()
+
+	targetDir := t.TempDir()
+
+	// Act
+	err := plugin.ExtractPlugin(targetDir)
+	if err != nil {
+		t.Fatalf("ExtractPlugin() returned unexpected error: %v", err)
+	}
+
+	// Assert: skills/board-setup/SKILL.md exists
+	skillPath := filepath.Join(targetDir, "skills", "board-setup", "SKILL.md")
+	data, err := os.ReadFile(skillPath)
+	if err != nil {
+		t.Fatalf("expected skills/board-setup/SKILL.md to exist, got error: %v", err)
+	}
+
+	content := string(data)
+
+	// Assert: file has YAML frontmatter between --- delimiters
+	if !strings.HasPrefix(content, "---\n") {
+		t.Fatal("skills/board-setup/SKILL.md does not start with YAML frontmatter delimiter '---'")
+	}
+
+	// Extract frontmatter between first and second ---
+	rest := content[4:] // skip first "---\n"
+	endIdx := strings.Index(rest, "\n---")
+	if endIdx == -1 {
+		t.Fatal("skills/board-setup/SKILL.md missing closing YAML frontmatter delimiter '---'")
+	}
+	frontmatter := rest[:endIdx]
+
+	// Parse YAML frontmatter
+	var meta map[string]interface{}
+	if err := yaml.Unmarshal([]byte(frontmatter), &meta); err != nil {
+		t.Fatalf("YAML frontmatter is not valid YAML: %v", err)
+	}
+
+	// Assert: required string fields
+	for _, field := range []string{"name", "description"} {
+		val, ok := meta[field]
+		if !ok {
+			t.Errorf("frontmatter missing required field %q", field)
+			continue
+		}
+		str, ok := val.(string)
+		if !ok || str == "" {
+			t.Errorf("frontmatter field %q should be a non-empty string, got %v", field, val)
+		}
+	}
+
+	// Assert: body contains all standard column names
+	body := rest[endIdx+4:] // skip "\n---" + newline after closing delimiter
+	for _, column := range []string{"Backlog", "Ready", "Scoped", "In Progress", "In Review", "Done"} {
+		if !strings.Contains(body, column) {
+			t.Errorf("skills/board-setup/SKILL.md body should contain column name %q", column)
+		}
+	}
+}
+
 func TestExtractPlugin_returnsErrorIfTargetDirectoryIsNotWritable(t *testing.T) {
 	t.Parallel()
 

@@ -56,13 +56,13 @@ Builds on: Slice 2
 - [x] prompts/worker.md deleted (single source of truth is plugin/agents/worker.md)
 
 ## Slice 4: Board-setup skill
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `plugin/skills/board-setup/SKILL.md` (new)
 Builds on: Slice 1 (not Slice 3 — independent)
 
-- [ ] Skill file has valid YAML frontmatter (name, description)
-- [ ] Skill content instructs creating board with columns: Backlog, Ready, Scoped, In Progress, In Review, Done
-- [ ] Skill is extracted as part of plugin
+- [x] Skill file has valid YAML frontmatter (name, description)
+- [x] Skill content instructs creating board with columns: Backlog, Ready, Scoped, In Progress, In Review, Done
+- [x] Skill is extracted as part of plugin
 
 ## Slice 5: ADRs + CLAUDE.md update
 Type: docs | Status: pending
