@@ -39,8 +39,8 @@ Files: `plugin/agents/integrator.md` (new), `internal/launch/launch.go`, `intern
 Builds on: Slice 1
 
 - [x] Integrator agent file has valid YAML frontmatter (name, description, tools)
-- [ ] Integrator prompt content preserved from current internal/prime/integrator.md
-- [ ] IntegratorCommand returns claude invocation referencing the plugin agent
+- [x] Integrator prompt content preserved from current internal/prime/integrator.md
+- [x] IntegratorCommand returns claude invocation referencing the plugin agent
 - [ ] prime.Build no longer includes static integrator prompt (only dynamic state: board, workers, repo)
 - [ ] go:embed of integrator.md removed from prime.go
 - [ ] internal/prime/integrator.md deleted (single source of truth is plugin/agents/integrator.md)
