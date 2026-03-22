@@ -20,11 +20,11 @@ Files: `cmd/precompact.go` (new), `cmd/precompact_test.go` (new)
 - [x] runPrecompactWith does not cycle for Integrator role
 
 ## Slice 2: Extract worker restart command builder
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `internal/worker/worker.go`, `internal/worker/worker_test.go`
 
-- [ ] BuildRestartCommand returns correct claude command given issue number
-- [ ] BuildRestartCommand fetches issue title and routes skill from labels
+- [x] BuildRestartCommand returns correct claude command given issue number
+- [x] BuildRestartCommand fetches issue title and routes skill from labels
 
 ## Slice 3: Worker cycle — background kill + restart
 Type: unit | Status: pending

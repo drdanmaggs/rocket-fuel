@@ -181,6 +181,14 @@ func cleanupStaleWorker(repoDir, worktreeDir, branchName string) {
 	_ = deleteBranch.Run()
 }
 
+// BuildRestartCommand constructs the shell command to restart a worker in a given worktree.
+// It routes the skill from labels, builds the prompt, and returns the cd + claude invocation.
+func BuildRestartCommand(worktreeDir string, issue Issue) string {
+	skill := RouteSkill(issue.Labels)
+	prompt := buildPrompt(issue, skill)
+	return fmt.Sprintf("cd %s && claude --agent worker --dangerously-skip-permissions %s", worktreeDir, shellQuote(prompt))
+}
+
 func shellQuote(s string) string {
 	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
 }
