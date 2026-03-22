@@ -4,9 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"strings"
 
+	"github.com/drdanmaggs/rocket-fuel/internal/dashboard"
+	"github.com/drdanmaggs/rocket-fuel/internal/hookutil"
 	"github.com/drdanmaggs/rocket-fuel/internal/session"
 	"github.com/drdanmaggs/rocket-fuel/internal/tmux"
 	"github.com/drdanmaggs/rocket-fuel/internal/worker"
@@ -25,6 +29,24 @@ func init() {
 }
 
 func runSessionEnded(_ *cobra.Command, _ []string) error {
+	return runSessionEndedWith(os.Stdin)
+}
+
+func runSessionEndedWith(input io.Reader) error {
+	// Detect whether this is an Integrator or Worker session ending.
+	role := hookutil.DetectRole(input)
+
+	// If Integrator session ended, log warning but don't attempt reap logic.
+	if role == hookutil.RoleIntegrator {
+		repoDir, err := repoRoot()
+		if err == nil {
+			// In a repo — log warning to activity feed.
+			_ = dashboard.WriteActivity(repoDir, "Integrator session ended unexpectedly")
+		}
+		return nil
+	}
+
+	// Worker session ended — run reap logic.
 	repoDir, err := repoRoot()
 	if err != nil {
 		return nil // not in a repo, nothing to do
