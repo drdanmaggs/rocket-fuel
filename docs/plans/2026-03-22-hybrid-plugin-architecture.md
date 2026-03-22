@@ -46,14 +46,14 @@ Builds on: Slice 1
 - [x] internal/prime/integrator.md deleted (single source of truth is plugin/agents/integrator.md)
 
 ## Slice 3: Worker agent definition
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `plugin/agents/worker.md` (new), `internal/worker/worker.go`, `internal/worker/worker_test.go`
 Builds on: Slice 2
 
-- [ ] Worker agent file has valid YAML frontmatter (name, description, tools)
-- [ ] Worker spawn command references plugin agent with issue context via initial message
-- [ ] Skill routing preserved in worker.go (labels to skills mapping in initial message)
-- [ ] prompts/worker.md deleted (single source of truth is plugin/agents/worker.md)
+- [x] Worker agent file has valid YAML frontmatter (name, description, tools)
+- [x] Worker spawn command references plugin agent with issue context via initial message
+- [x] Skill routing preserved in worker.go (labels to skills mapping in initial message)
+- [x] prompts/worker.md deleted (single source of truth is plugin/agents/worker.md)
 
 ## Slice 4: Board-setup skill
 Type: unit | Status: pending
