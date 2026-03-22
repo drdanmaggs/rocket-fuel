@@ -57,6 +57,19 @@ func TestIntegratorCommand_usesDangerouslySkipPermissions(t *testing.T) {
 	}
 }
 
+func TestIntegratorCommand_referencesPluginAgent(t *testing.T) {
+	t.Parallel()
+
+	cmd := IntegratorCommand()
+
+	if !strings.Contains(cmd, "--agent") {
+		t.Errorf("expected --agent flag in command, got: %q", cmd)
+	}
+	if !strings.Contains(cmd, "integrator") {
+		t.Errorf("expected 'integrator' agent reference in command, got: %q", cmd)
+	}
+}
+
 func TestEnsureClaudeSettings_createsSettingsFile(t *testing.T) {
 	t.Parallel()
 
