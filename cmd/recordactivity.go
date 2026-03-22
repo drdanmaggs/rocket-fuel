@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/drdanmaggs/rocket-fuel/internal/hookutil"
 	"github.com/spf13/cobra"
 )
 
@@ -20,6 +22,16 @@ func init() {
 }
 
 func runRecordActivity(_ *cobra.Command, _ []string) error {
+	return runRecordActivityWith(os.Stdin)
+}
+
+func runRecordActivityWith(input io.Reader) error {
+	// If the caller is an Integrator, short-circuit immediately (no-op).
+	role := hookutil.DetectRole(input)
+	if role == hookutil.RoleIntegrator {
+		return nil
+	}
+
 	repoDir, err := repoRoot()
 	if err != nil {
 		return nil // not in repo, skip

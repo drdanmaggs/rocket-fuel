@@ -33,11 +33,27 @@ See `docs/adr/006-hybrid-plugin-architecture.md` for full rationale.
 | Agent definitions | `internal/plugin/agents/` (17 agents) | Integrator, Worker, TDD subagents, code-reviewer subagents, etc. |
 | Skills | `internal/plugin/skills/` (26 skills) | /tdd, /ship, /code-reviewer, /issue-scope, board-setup, etc. |
 | Rules | `internal/plugin/rules/` (8 rules) | testing, commit-discipline, code-quality, etc. |
-| Hooks | `.claude/settings.json` per repo | Project-scoped lifecycle hooks (installed by `rf launch`) |
-| Hook handlers | `cmd/*.go` | `rf prime`, `rf should-continue`, etc. |
+| Hooks | `.claude/settings.json` per repo | Project-scoped lifecycle hooks (installed by `rf launch`). See `docs/adr/001-claude-code-hooks.md` |
+| Hook handlers | `cmd/*.go` | Role-aware via `hookutil.DetectRole()` — different behavior for Integrator vs Worker |
 | Orchestration | `cmd/`, `internal/` | tmux, worktrees, watchdog, dashboard |
 
 Plugin files are embedded via `go:embed` and extracted on every `rf launch`. Always-overwrite — fork to customize.
+
+## Hooks Strategy
+
+Hooks are central to Rocket Fuel's event-driven architecture. See `docs/adr/001-claude-code-hooks.md` for the full role-specific matrix.
+
+**Official Claude Code hooks documentation:** https://code.claude.com/docs/en/hooks.md
+
+**Key facts:**
+- Hooks fire at lifecycle events (SessionStart, Stop, PreToolUse, etc.) and call `rf` commands
+- Hook input is JSON on stdin — includes `agent_type` (set when using `--agent`), `cwd`, `session_id`, `hook_event_name`
+- Exit code 0 = success, exit code 2 = block action (stderr shown to Claude)
+- Hooks are project-scoped (`.claude/settings.json`) NOT global — the Stop hook would break all sessions if global
+- All handlers use `hookutil.DetectRole()` to branch behavior per role (Integrator vs Worker)
+- Matcher field is regex — only `PreToolUse` uses a matcher (`Bash(gh pr merge*)`)
+
+**Role detection:** Primary = `agent_type` from hook stdin JSON. Fallback = `cwd` contains `.worktrees/` (Worker) or not (Integrator).
 
 ## Stack
 
