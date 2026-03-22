@@ -39,6 +39,22 @@ See `docs/adr/006-hybrid-plugin-architecture.md` for full rationale.
 
 Plugin files are embedded via `go:embed` and extracted on every `rf launch`. Always-overwrite — fork to customize.
 
+## Hooks Strategy
+
+Hooks are central to Rocket Fuel's event-driven architecture. See `docs/adr/001-claude-code-hooks.md` for the full role-specific matrix.
+
+**Official Claude Code hooks documentation:** https://code.claude.com/docs/en/hooks.md
+
+**Key facts:**
+- Hooks fire at lifecycle events (SessionStart, Stop, PreToolUse, etc.) and call `rf` commands
+- Hook input is JSON on stdin — includes `agent_type` (set when using `--agent`), `cwd`, `session_id`, `hook_event_name`
+- Exit code 0 = success, exit code 2 = block action (stderr shown to Claude)
+- Hooks are project-scoped (`.claude/settings.json`) NOT global — the Stop hook would break all sessions if global
+- All handlers use `hookutil.DetectRole()` to branch behavior per role (Integrator vs Worker)
+- Matcher field is regex — only `PreToolUse` uses a matcher (`Bash(gh pr merge*)`)
+
+**Role detection:** Primary = `agent_type` from hook stdin JSON. Fallback = `cwd` contains `.worktrees/` (Worker) or not (Integrator).
+
 ## Stack
 
 - **Language:** Go
