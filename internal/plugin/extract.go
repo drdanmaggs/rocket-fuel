@@ -17,6 +17,9 @@ var agentsFS embed.FS
 //go:embed all:skills
 var skillsFS embed.FS
 
+//go:embed all:rules
+var rulesFS embed.FS
+
 // ExtractPlugin extracts the Claude plugin files to the given target directory.
 func ExtractPlugin(targetDir string) error {
 	// Create the .claude-plugin directory
@@ -38,6 +41,11 @@ func ExtractPlugin(targetDir string) error {
 
 	// Extract skills directory
 	if err := extractDir(skillsFS, "skills", filepath.Join(targetDir, "skills")); err != nil {
+		return err
+	}
+
+	// Extract rules directory
+	if err := extractDir(rulesFS, "rules", filepath.Join(targetDir, "rules")); err != nil {
 		return err
 	}
 

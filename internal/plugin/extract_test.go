@@ -394,6 +394,50 @@ func TestExtractPlugin_extractsAllSkillDirectoriesWithReferencesIntact(t *testin
 	}
 }
 
+func TestExtractPlugin_extractsAllRuleFiles(t *testing.T) {
+	t.Parallel()
+
+	targetDir := t.TempDir()
+
+	// Act
+	err := plugin.ExtractPlugin(targetDir)
+	if err != nil {
+		t.Fatalf("ExtractPlugin() returned unexpected error: %v", err)
+	}
+
+	// Assert: rules/ directory exists and contains exactly 8 .md files
+	rulesDir := filepath.Join(targetDir, "rules")
+	entries, err := os.ReadDir(rulesDir)
+	if err != nil {
+		t.Fatalf("expected rules/ directory to exist, got error: %v", err)
+	}
+
+	var mdFiles []string
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
+			mdFiles = append(mdFiles, entry.Name())
+		}
+	}
+
+	if len(mdFiles) != 8 {
+		t.Fatalf("expected 8 rule .md files, got %d: %v", len(mdFiles), mdFiles)
+	}
+
+	// Assert: key rule files exist and are non-empty
+	keyRules := []string{"testing.md", "commit-discipline.md", "code-quality.md"}
+	for _, ruleName := range keyRules {
+		rulePath := filepath.Join(rulesDir, ruleName)
+		data, err := os.ReadFile(rulePath)
+		if err != nil {
+			t.Errorf("expected rule file %q to exist, got error: %v", ruleName, err)
+			continue
+		}
+		if len(data) == 0 {
+			t.Errorf("rule file %q is empty", ruleName)
+		}
+	}
+}
+
 func TestExtractPlugin_returnsErrorIfTargetDirectoryIsNotWritable(t *testing.T) {
 	t.Parallel()
 
