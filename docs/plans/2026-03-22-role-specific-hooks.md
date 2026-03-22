@@ -17,7 +17,7 @@ Type: unit | Status: pending
 Files: `internal/hookutil/role.go` (new), `internal/hookutil/role_test.go` (new)
 
 - [x] DetectRole returns Integrator when agent_type is "integrator"
-- [ ] DetectRole returns Worker when agent_type is "worker"
+- [x] DetectRole returns Worker when agent_type is "worker"
 - [ ] DetectRole returns Worker when cwd contains ".worktrees/" (fallback)
 - [ ] DetectRole returns Integrator when agent_type is empty and cwd is repo root (fallback)
 
