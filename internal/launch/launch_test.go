@@ -15,9 +15,8 @@ func TestWritePrimeContext_createsFile(t *testing.T) {
 
 	dir := t.TempDir()
 	input := &prime.Input{
-		IntegratorPrompt: "You are the Integrator.",
-		RepoDir:          dir,
-		Branch:           "main",
+		RepoDir: dir,
+		Branch:  "main",
 	}
 
 	path, err := WritePrimeContext(dir, input)
@@ -36,9 +35,6 @@ func TestWritePrimeContext_createsFile(t *testing.T) {
 	}
 
 	content := string(data)
-	if !strings.Contains(content, "You are the Integrator.") {
-		t.Error("expected integrator prompt in context file")
-	}
 	if !strings.Contains(content, "main") {
 		t.Error("expected branch name in context file")
 	}
@@ -54,6 +50,19 @@ func TestIntegratorCommand_usesDangerouslySkipPermissions(t *testing.T) {
 	}
 	if !strings.Contains(cmd, "--dangerously-skip-permissions") {
 		t.Errorf("expected --dangerously-skip-permissions, got: %q", cmd)
+	}
+}
+
+func TestIntegratorCommand_referencesPluginAgent(t *testing.T) {
+	t.Parallel()
+
+	cmd := IntegratorCommand()
+
+	if !strings.Contains(cmd, "--agent") {
+		t.Errorf("expected --agent flag in command, got: %q", cmd)
+	}
+	if !strings.Contains(cmd, "integrator") {
+		t.Errorf("expected 'integrator' agent reference in command, got: %q", cmd)
 	}
 }
 

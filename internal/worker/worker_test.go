@@ -1,8 +1,68 @@
 package worker
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/drdanmaggs/rocket-fuel/internal/testutil"
 )
+
+// spawnTmuxRecorder captures SendKeys calls for verifying Spawn command construction.
+type spawnTmuxRecorder struct {
+	mockTmuxRunner
+	sendKeysCalls []sendKeysCall
+}
+
+type sendKeysCall struct {
+	session string
+	window  string
+	keys    string
+}
+
+func newSpawnTmuxRecorder() *spawnTmuxRecorder {
+	return &spawnTmuxRecorder{
+		mockTmuxRunner: *newMockTmuxRunner(),
+	}
+}
+
+func (r *spawnTmuxRecorder) SendKeys(session, window, keys string) error {
+	r.sendKeysCalls = append(r.sendKeysCalls, sendKeysCall{session, window, keys})
+	return nil
+}
+
+func TestSpawnSendsClaudeCommandWithAgentWorkerFlag(t *testing.T) {
+	t.Parallel()
+
+	repoDir := testutil.InitTestRepo(t)
+
+	tm := newSpawnTmuxRecorder()
+	tm.sessions["rf-integrator"] = true
+
+	cfg := SpawnConfig{
+		RepoDir:     repoDir,
+		SessionName: "rf-integrator",
+	}
+
+	issue := Issue{
+		Number: 99,
+		Title:  "Test agent flag",
+		Labels: []string{"workflow:tdd"},
+	}
+
+	err := Spawn(tm, cfg, issue)
+	if err != nil {
+		t.Fatalf("Spawn failed: %v", err)
+	}
+
+	if len(tm.sendKeysCalls) == 0 {
+		t.Fatal("expected SendKeys to be called, got no calls")
+	}
+
+	cmd := tm.sendKeysCalls[0].keys
+	if !strings.Contains(cmd, "--agent worker") {
+		t.Errorf("expected SendKeys command to contain '--agent worker', got:\n%s", cmd)
+	}
+}
 
 func TestRouteSkillFromLabels(t *testing.T) {
 	t.Parallel()

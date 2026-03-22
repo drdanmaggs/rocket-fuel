@@ -13,6 +13,7 @@ import (
 	"syscall"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/launch"
+	rfplugin "github.com/drdanmaggs/rocket-fuel/internal/plugin"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
 	"github.com/drdanmaggs/rocket-fuel/internal/projects"
 	"github.com/drdanmaggs/rocket-fuel/internal/selfupdate"
@@ -85,6 +86,15 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		repoDir, err = repoRoot()
 		if err != nil {
 			return fmt.Errorf("selected project is not a git repository: %w", err)
+		}
+	}
+
+	// Extract Claude Code plugin (agents, skills) to ~/.claude/plugins/rocket-fuel/.
+	homeDir, _ := os.UserHomeDir()
+	if homeDir != "" {
+		pluginDir := filepath.Join(homeDir, ".claude", "plugins", "rocket-fuel")
+		if err := rfplugin.ExtractPlugin(pluginDir); err != nil {
+			_, _ = fmt.Fprintf(out, "  Warning: could not extract plugin: %v\n", err)
 		}
 	}
 

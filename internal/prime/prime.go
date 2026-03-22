@@ -4,7 +4,6 @@
 package prime
 
 import (
-	_ "embed"
 	"fmt"
 	"strings"
 
@@ -12,30 +11,19 @@ import (
 	"github.com/drdanmaggs/rocket-fuel/internal/status"
 )
 
-//go:embed integrator.md
-var defaultIntegratorPrompt string
-
 // Input holds the pre-fetched data needed to build the Integrator context.
 type Input struct {
-	IntegratorPrompt string
-	Board            *project.BoardSummary
-	Status           *status.Summary
-	RepoDir          string
-	Branch           string
+	Board   *project.BoardSummary
+	Status  *status.Summary
+	RepoDir string
+	Branch  string
 }
 
 // Build assembles the Integrator context document from pre-fetched data.
 func Build(in *Input) string {
 	var b strings.Builder
 
-	prompt := in.IntegratorPrompt
-	if prompt == "" {
-		prompt = defaultIntegratorPrompt
-	}
-	_, _ = fmt.Fprintln(&b, prompt)
-
 	if in.Board != nil {
-		_, _ = fmt.Fprintln(&b)
 		_, _ = fmt.Fprintln(&b, "## Board")
 		_, _ = fmt.Fprintln(&b)
 		_, _ = fmt.Fprint(&b, project.FormatBoard(in.Board))

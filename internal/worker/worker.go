@@ -46,7 +46,7 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 	skill := RouteSkill(issue.Labels)
 	prompt := buildPrompt(issue, skill)
 
-	sendKeys := fmt.Sprintf("cd %s && claude --dangerously-skip-permissions %s", worktreeDir, shellQuote(prompt))
+	sendKeys := fmt.Sprintf("cd %s && claude --agent worker --dangerously-skip-permissions %s", worktreeDir, shellQuote(prompt))
 	if err := tm.SendKeys(cfg.SessionName, windowName, sendKeys); err != nil {
 		return fmt.Errorf("send keys: %w", err)
 	}
