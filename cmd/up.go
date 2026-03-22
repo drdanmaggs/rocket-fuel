@@ -102,24 +102,22 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("session setup failed: %w", err)
 	}
 
-	if created {
-		// Ensure .claude/settings.json has the SessionStart hook.
-		if err := launch.EnsureClaudeSettings(repoDir); err != nil {
-			_, _ = fmt.Fprintf(out, "  Warning: could not set up Claude hooks: %v\n", err)
-		}
+	// Always ensure hooks are up to date (even on reattach).
+	if err := launch.EnsureClaudeSettings(repoDir); err != nil {
+		_, _ = fmt.Fprintf(out, "  Warning: could not set up Claude hooks: %v\n", err)
+	}
 
+	if created {
 		// Launch Claude Code in the integrator window.
-		// Context is injected automatically via the SessionStart hook (rf prime).
 		launchCmd := launch.IntegratorCommand()
 		if err := tm.SendKeys(sessionName, session.WindowIntegrator, launchCmd); err != nil {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch integrator: %v\n", err)
 		}
 
 		// Split the integrator window AFTER tmux -CC attaches.
-		// Panes created before -CC don't render in iTerm2.
 		spawnDashboardSplit(sessionName)
 
-		// Launch mission control in its window.
+		// Launch watchdog in its window.
 		if err := tm.SendKeys(sessionName, session.WindowWatchdog, "rf watchdog --loop"); err != nil {
 			_, _ = fmt.Fprintf(out, "  Warning: could not launch watchdog: %v\n", err)
 		}
