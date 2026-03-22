@@ -36,10 +36,10 @@ Builds on: Slice 1 + 2
 - [x] CycleWorker extracts issue number from worktree cwd
 
 ## Slice 4: Update PreCompact hook + docs
-Type: unit + docs | Status: pending
+Type: unit + docs | Status: done
 Files: `internal/launch/launch.go`, `internal/launch/launch_test.go`, `docs/adr/008-session-cycling.md` (new), `CLAUDE.md`
 Builds on: Slice 3
 
-- [ ] EnsureClaudeSettings writes rf precompact for PreCompact hook (not rf prime)
-- [ ] ADR-008 documents session cycling decision (why cycle vs compact, gastown precedent)
-- [ ] CLAUDE.md updated with session cycling in architecture section
+- [x] EnsureClaudeSettings writes rf precompact for PreCompact hook (not rf prime)
+- [x] ADR-008 documents session cycling decision (why cycle vs compact, gastown precedent)
+- [x] CLAUDE.md updated with session cycling in architecture section
