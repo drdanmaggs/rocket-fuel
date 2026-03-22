@@ -15,7 +15,6 @@ func TestRunRecordActivityWith_isNoOpForIntegrator(t *testing.T) {
 	// For the Integrator role, record-activity should short-circuit immediately
 	// since activity tracking only applies to Workers.
 	err := runRecordActivityWith(input)
-
 	// Assert: Integrator should return nil without performing any activity recording.
 	if err != nil {
 		t.Fatalf("expected nil error for Integrator role (no-op), got: %v", err)

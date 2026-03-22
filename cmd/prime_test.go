@@ -15,7 +15,6 @@ func TestRunPrimeWith_outputsOnlyRepoContextForWorkers(t *testing.T) {
 
 	// Act: call the testable logic function with Worker input and captured output.
 	err := runPrimeWith(input, &out)
-
 	// Assert: no error expected.
 	if err != nil {
 		t.Fatalf("expected nil error for Worker role, got: %v", err)
@@ -46,7 +45,6 @@ func TestRunPrimeWith_includesRepoContextForIntegrator(t *testing.T) {
 
 	// Act: call the testable logic function with Integrator input.
 	err := runPrimeWith(input, &out)
-
 	// Assert: no error expected.
 	if err != nil {
 		t.Fatalf("expected nil error for Integrator role, got: %v", err)

@@ -15,7 +15,6 @@ func TestRunSessionEndedWith_logsWarningForIntegratorSessionDeath(t *testing.T) 
 
 	// Act: call the testable logic function with Integrator input.
 	err := runSessionEndedWith(input)
-
 	// Assert: returns nil (doesn't crash). The key behavioral difference is that
 	// for an Integrator, it does NOT attempt to reap workers or nudge the
 	// Integrator (which would be nonsensical — the Integrator IS the dying session).
