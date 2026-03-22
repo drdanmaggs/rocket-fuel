@@ -46,14 +46,14 @@ func EnsureClaudeSettings(repoDir string) error {
 		},
 	}
 
-	// Set PreCompact hook to re-inject context after compression.
+	// Set PreCompact hook — Integrator re-primes, Workers session-cycle.
 	hooks["PreCompact"] = []map[string]interface{}{
 		{
 			"matcher": "",
 			"hooks": []map[string]interface{}{
 				{
 					"type":    "command",
-					"command": `export PATH="$HOME/go/bin:$PATH" && rf prime`,
+					"command": `export PATH="$HOME/go/bin:$PATH" && rf precompact`,
 				},
 			},
 		},
