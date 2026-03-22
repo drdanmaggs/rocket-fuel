@@ -2,13 +2,17 @@
 package plugin
 
 import (
-	_ "embed"
+	"embed"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
 
 //go:embed .claude-plugin/plugin.json
 var pluginJSON []byte
+
+//go:embed all:agents
+var agentsFS embed.FS
 
 // ExtractPlugin extracts the Claude plugin files to the given target directory.
 func ExtractPlugin(targetDir string) error {
@@ -24,5 +28,37 @@ func ExtractPlugin(targetDir string) error {
 		return err
 	}
 
+	// Extract agents directory
+	if err := extractDir(agentsFS, "agents", filepath.Join(targetDir, "agents")); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// extractDir recursively extracts a directory from an embedded filesystem.
+func extractDir(fsys embed.FS, src, dst string) error {
+	return fs.WalkDir(fsys, src, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+
+		dstPath := filepath.Join(dst, relPath)
+
+		if d.IsDir() {
+			return os.MkdirAll(dstPath, 0o755)
+		}
+
+		data, err := fs.ReadFile(fsys, path)
+		if err != nil {
+			return err
+		}
+
+		return os.WriteFile(dstPath, data, 0o644)
+	})
 }
