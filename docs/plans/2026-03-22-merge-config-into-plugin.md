@@ -20,12 +20,12 @@ Files: `internal/plugin/agents/*.md` (15 new files), `internal/plugin/extract_te
 - [x] Each agent file has valid content (non-empty, starts with --- or #)
 
 ## Slice 2: Copy all skills into plugin + verify complex extraction
-Type: unit | Status: pending
-Files: `internal/plugin/skills/*/` (23 new skill directories), `internal/plugin/extract_test.go`
+Type: unit | Status: done
+Files: `internal/plugin/skills/*/` (25 new skill directories), `internal/plugin/extract_test.go`
 Builds on: Slice 1
 
-- [ ] ExtractPlugin extracts all 24 skill directories (23 new + board-setup)
-- [ ] Skills with references/ subdirectories extract correctly (verify tdd/references/ exists)
+- [x] ExtractPlugin extracts all 26 skill directories (25 new + board-setup)
+- [x] Skills with references/ subdirectories extract correctly (verify tdd/references/ exists)
 
 ## Slice 3: Add rules support
 Type: unit | Status: pending
