@@ -13,13 +13,13 @@ Test helpers: `internal/testutil/`
 Acceptance test path: none
 
 ## Slice 1: Role detection utility
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `internal/hookutil/role.go` (new), `internal/hookutil/role_test.go` (new)
 
 - [x] DetectRole returns Integrator when agent_type is "integrator"
 - [x] DetectRole returns Worker when agent_type is "worker"
-- [ ] DetectRole returns Worker when cwd contains ".worktrees/" (fallback)
-- [ ] DetectRole returns Integrator when agent_type is empty and cwd is repo root (fallback)
+- [x] DetectRole returns Worker when cwd contains ".worktrees/" (fallback)
+- [x] DetectRole returns Integrator when agent_type is empty and cwd is repo root (fallback)
 
 ## Slice 2: Stop hook — no-op for Workers
 Type: unit | Status: pending
