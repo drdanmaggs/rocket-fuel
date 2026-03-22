@@ -52,6 +52,7 @@ Hooks are central to Rocket Fuel's event-driven architecture. See `docs/adr/001-
 - Hooks are project-scoped (`.claude/settings.json`) NOT global — the Stop hook would break all sessions if global
 - All handlers use `hookutil.DetectRole()` to branch behavior per role (Integrator vs Worker)
 - Matcher field is regex — only `PreToolUse` uses a matcher (`Bash(gh pr merge*)`)
+- **Session cycling** — Workers get killed and restarted on PreCompact instead of lossy compaction. See `docs/adr/008-session-cycling.md`
 
 **Role detection:** Primary = `agent_type` from hook stdin JSON. Fallback = `cwd` contains `.worktrees/` (Worker) or not (Integrator).
 

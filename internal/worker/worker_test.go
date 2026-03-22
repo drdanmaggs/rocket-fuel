@@ -167,6 +167,35 @@ func TestShellQuote(t *testing.T) {
 	}
 }
 
+func TestBuildRestartCommandReturnsCorrectClaudeCommand(t *testing.T) {
+	t.Parallel()
+
+	issue := Issue{
+		Number: 42,
+		Title:  "Fix auth bug",
+		Labels: []string{"workflow:tdd"},
+	}
+
+	cmd := BuildRestartCommand("/tmp/worktree", issue)
+
+	checks := []struct {
+		substr string
+		desc   string
+	}{
+		{"cd /tmp/worktree", "should cd into worktree directory"},
+		{"--agent worker", "should use agent worker flag"},
+		{"--dangerously-skip-permissions", "should skip permissions"},
+		{"#42", "should reference issue number"},
+		{"/tdd", "should include routed skill"},
+	}
+
+	for _, check := range checks {
+		if !contains(cmd, check.substr) {
+			t.Errorf("%s: expected command to contain %q, got:\n%s", check.desc, check.substr, cmd)
+		}
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) > 0 && len(substr) > 0 && // avoid false positives on empty strings
 		indexOf(s, substr) >= 0
