@@ -24,14 +24,14 @@ Test helpers: `internal/testutil/` (real tmux sockets, real git repos)
 Acceptance test path: none (CLI tool — manual verification required)
 
 ## Slice 1: Plugin skeleton + extraction
-Type: unit | Status: pending
-Files: `plugin/.claude-plugin/plugin.json` (new), `internal/plugin/extract.go` (new), `internal/plugin/extract_test.go` (new), `cmd/up.go`
+Type: unit | Status: done
+Files: `internal/plugin/.claude-plugin/plugin.json` (new), `internal/plugin/extract.go` (new), `internal/plugin/extract_test.go` (new), `cmd/up.go`
 
 - [x] ExtractPlugin(targetDir) creates plugin directory structure at the given path
 - [x] Extraction creates .claude-plugin/plugin.json with valid manifest (name, version, description fields)
 - [x] Extraction overwrites existing files on every call (always-overwrite strategy)
 - [x] ExtractPlugin returns error if target directory is not writable
-- [ ] rf launch calls ExtractPlugin before session setup (warning on failure, not fatal)
+- [x] rf launch calls ExtractPlugin before session setup (warning on failure, not fatal)
 
 ## Slice 2: Integrator agent definition
 Type: unit | Status: pending
