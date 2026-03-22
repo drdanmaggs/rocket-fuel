@@ -330,6 +330,70 @@ func TestExtractPlugin_extractsAll17AgentDefinitions(t *testing.T) {
 	}
 }
 
+func TestExtractPlugin_extractsAllSkillDirectoriesWithReferencesIntact(t *testing.T) {
+	t.Parallel()
+
+	targetDir := t.TempDir()
+
+	// Act
+	err := plugin.ExtractPlugin(targetDir)
+	if err != nil {
+		t.Fatalf("ExtractPlugin() returned unexpected error: %v", err)
+	}
+
+	// Assert: skills/ directory contains exactly 27 subdirectories
+	skillsDir := filepath.Join(targetDir, "skills")
+	entries, err := os.ReadDir(skillsDir)
+	if err != nil {
+		t.Fatalf("expected skills/ directory to exist, got error: %v", err)
+	}
+
+	var skillDirs []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			skillDirs = append(skillDirs, entry.Name())
+		}
+	}
+
+	// ci-verify/ is empty on disk so Go's embed skips it; 26 directories extract
+	if len(skillDirs) != 26 {
+		t.Fatalf("expected 26 skill directories, got %d: %v", len(skillDirs), skillDirs)
+	}
+
+	// Assert: each skill directory contains a SKILL.md file
+	for _, dir := range skillDirs {
+		skillMDPath := filepath.Join(skillsDir, dir, "SKILL.md")
+		info, err := os.Stat(skillMDPath)
+		if err != nil {
+			t.Errorf("expected %s/SKILL.md to exist, got error: %v", dir, err)
+			continue
+		}
+		if info.Size() == 0 {
+			t.Errorf("%s/SKILL.md is empty", dir)
+		}
+	}
+
+	// Assert: complex subdirectories extract correctly (skills/tdd/references/)
+	referencesDir := filepath.Join(skillsDir, "tdd", "references")
+	info, err := os.Stat(referencesDir)
+	if err != nil {
+		t.Fatalf("expected skills/tdd/references/ to exist, got error: %v", err)
+	}
+	if !info.IsDir() {
+		t.Fatal("skills/tdd/references/ should be a directory")
+	}
+
+	// Assert: files within references/ extract correctly
+	phasePromptsPath := filepath.Join(referencesDir, "phase-prompts.md")
+	data, err := os.ReadFile(phasePromptsPath)
+	if err != nil {
+		t.Fatalf("expected skills/tdd/references/phase-prompts.md to exist, got error: %v", err)
+	}
+	if len(data) == 0 {
+		t.Fatal("skills/tdd/references/phase-prompts.md is empty")
+	}
+}
+
 func TestExtractPlugin_returnsErrorIfTargetDirectoryIsNotWritable(t *testing.T) {
 	t.Parallel()
 
