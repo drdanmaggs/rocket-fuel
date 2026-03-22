@@ -46,12 +46,12 @@ Builds on: Slice 1
 - [x] rf record-activity is no-op for Integrator
 
 ## Slice 5: Session-ended — per-role behavior
-Type: unit | Status: pending
+Type: unit | Status: done
 Files: `cmd/sessionended.go`
 Builds on: Slice 1
 
-- [ ] rf session-ended reaps worker and nudges Integrator when role is Worker
-- [ ] rf session-ended logs warning when role is Integrator (unexpected death)
+- [x] rf session-ended reaps worker and nudges Integrator when role is Worker
+- [x] rf session-ended logs warning when role is Integrator (unexpected death)
 
 ## Slice 6: Remaining hooks + documentation
 Type: unit + docs | Status: pending
