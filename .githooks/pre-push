@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export PATH="$HOME/go/bin:$PATH"
+
+echo "==> Pre-push: running lint"
+make lint
 
 echo "==> Pre-push: running full test suite"
 make test

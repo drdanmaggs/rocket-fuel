@@ -6,13 +6,18 @@ import (
 	"strings"
 )
 
+// Role identifies the type of agent session (Integrator or Worker).
 type Role string
 
+// Role constants for agent detection.
 const (
 	RoleIntegrator Role = "integrator"
 	RoleWorker     Role = "worker"
 )
 
+// DetectRole parses Claude Code hook input JSON to determine the agent role.
+// Primary: checks agent_type field. Fallback: checks if cwd contains .worktrees/.
+// Defaults to Integrator when neither signal is present.
 func DetectRole(input io.Reader) Role {
 	var data struct {
 		AgentType string `json:"agent_type"`
