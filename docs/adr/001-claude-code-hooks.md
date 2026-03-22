@@ -4,78 +4,70 @@
 
 ## Context
 
-Rocket Fuel uses Claude Code hooks to make the agent system event-driven rather than polling-based. This document catalogs all available hooks and how Rocket Fuel uses or plans to use them.
+Rocket Fuel uses Claude Code hooks to make the agent system event-driven rather than polling-based. Hooks fire at specific lifecycle events and call `rf` commands that adapt behavior based on the agent's role (Integrator vs Worker).
 
-## All Claude Code Hook Events
+## Hook Input
 
-| Event | When it fires | Rocket Fuel usage |
-|-------|--------------|-------------------|
-| `SessionStart` | Session begins or resumes | **Active** — runs `rf prime` to inject board state + integrator prompt |
-| `SessionEnd` | Session terminates | **Planned** — trigger watchdog cleanup on worker/integrator death |
-| `UserPromptSubmit` | User submits a prompt | Unused |
-| `Stop` | Claude finishes responding | **Planned** — keep Integrator alive (force continuation when work exists) |
-| `StopFailure` | Turn ends due to API error | **Planned** — watchdog logs crashes, restarts agents |
-| `PreToolUse` | Before a tool executes | Unused (could gate destructive commands) |
-| `PostToolUse` | After a tool succeeds | **Planned** — track worker activity timestamps for stuck detection |
-| `PostToolUseFailure` | After a tool fails | Unused |
-| `PermissionRequest` | Permission dialog appears | Unused (--dangerously-skip-permissions bypasses) |
-| `PreCompact` | Before context compaction | **Active** — re-injects `rf prime` context |
-| `PostCompact` | After compaction completes | Unused |
-| `SubagentStart` | Subagent spawned | Unused |
-| `SubagentStop` | Subagent finishes | Unused |
-| `TeammateIdle` | Agent team teammate about to go idle | Unused |
-| `TaskCompleted` | Task marked as complete | Unused |
-| `Notification` | Claude sends a notification | Unused |
-| `InstructionsLoaded` | CLAUDE.md or rules file loaded | Unused |
-| `ConfigChange` | Config file changes during session | Unused |
-| `WorktreeCreate` | Worktree created | Unused (we manage worktrees ourselves) |
-| `WorktreeRemove` | Worktree removed | Unused |
-| `Elicitation` | MCP server requests user input | Unused |
-| `ElicitationResult` | User responds to MCP elicitation | Unused |
+Claude Code passes JSON to hook handlers via stdin. Common fields:
 
-## Hook handler types
+```json
+{
+  "session_id": "abc123",
+  "cwd": "/path/to/repo",
+  "hook_event_name": "SessionStart",
+  "agent_type": "integrator"
+}
+```
 
-All events support four handler types:
-- `command` — shell script (stdin/stdout/exit code)
+The `agent_type` field is set when Claude is launched with `--agent`. This is the primary role detection mechanism. Fallback: check if `cwd` contains `.worktrees/` (Worker) or not (Integrator).
+
+See: https://code.claude.com/docs/en/hooks
+
+## Role-Specific Hook Matrix
+
+All 7 hooks fire for both Integrator and Worker sessions (shared `.claude/settings.json`). Role differentiation happens inside each handler via `hookutil.DetectRole()`.
+
+| Hook | Handler | Integrator behavior | Worker behavior |
+|------|---------|-------------------|----------------|
+| SessionStart | `rf prime` | Full context (board, workers, repo) | Repo context only (no board/workers) |
+| PreCompact | `rf prime` | Full context (re-inject after compaction) | Repo context only |
+| Stop | `rf should-continue` | Block if work exists on board | **No-op** (allow stop — Workers self-exit) |
+| StopFailure | `rf handle-stop-failure` | Log error to activity feed | Log error to activity feed |
+| PostToolUse | `rf record-activity` | **No-op** (not tracked for stuck detection) | Record activity timestamp |
+| SessionEnd | `rf session-ended` | Log warning (unexpected death) | Reap worker, nudge Integrator |
+| PreToolUse | `rf check-merge-safety` | Gate PR merges (CI green, not draft) | Gate PR merges (same) |
+
+## Handler Types
+
+- `command` — shell script (stdin/stdout/exit code). All Rocket Fuel hooks use this.
 - `http` — POST to HTTP endpoint
 - `prompt` — single-turn Claude evaluation
 - `agent` — subagent with tool access
 
-## Exit code semantics
+## Exit Code Semantics
 
 - **0**: success (stdout may contain JSON response)
 - **2**: block action (stderr = reason shown to Claude)
 - **Other**: non-blocking error (logged, execution continues)
 
-## Current .claude/settings.json hooks
+## Current Settings
 
 Created by `rf launch` via `launch.EnsureClaudeSettings()`:
 
 ```json
 {
   "hooks": {
-    "SessionStart": [{"command": "rf prime"}],
-    "PreCompact": [{"command": "rf prime"}]
+    "SessionStart": [{"matcher": "", "hooks": [{"type": "command", "command": "rf prime"}]}],
+    "PreCompact": [{"matcher": "", "hooks": [{"type": "command", "command": "rf prime"}]}],
+    "Stop": [{"matcher": "", "hooks": [{"type": "command", "command": "rf should-continue"}]}],
+    "StopFailure": [{"matcher": "", "hooks": [{"type": "command", "command": "rf handle-stop-failure"}]}],
+    "PostToolUse": [{"matcher": "", "hooks": [{"type": "command", "command": "rf record-activity"}]}],
+    "SessionEnd": [{"matcher": "", "hooks": [{"type": "command", "command": "rf session-ended"}]}],
+    "PreToolUse": [{"matcher": "Bash(gh pr merge*)", "hooks": [{"type": "command", "command": "rf check-merge-safety"}]}]
   }
 }
 ```
 
-## Planned hooks (epic #170)
+## Why Hooks Stay Project-Scoped
 
-### Stop → keep Integrator alive
-```json
-{"Stop": [{"command": "rf watchdog should-continue"}]}
-```
-Returns `decision: "block"` when work exists, forcing Claude to continue.
-
-### SessionEnd → instant worker cleanup
-```json
-{"SessionEnd": [{"command": "rf watchdog session-ended"}]}
-```
-Triggers immediate reap instead of waiting for 3-minute poll.
-
-### PostToolUse → track worker activity
-```json
-{"PostToolUse": [{"command": "rf watchdog record-activity"}]}
-```
-Writes timestamp for stuck detection.
+Hooks are written to `.claude/settings.json` per repo (not in the global plugin). The Stop hook would block Claude from stopping in ALL sessions if applied globally. See ADR-006 for the plugin architecture decision.

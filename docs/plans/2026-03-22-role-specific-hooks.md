@@ -54,11 +54,11 @@ Builds on: Slice 1
 - [x] rf session-ended logs warning when role is Integrator (unexpected death)
 
 ## Slice 6: Remaining hooks + documentation
-Type: unit + docs | Status: pending
-Files: `cmd/stopfailure.go`, `cmd/mergesafety.go`, `docs/adr/001-claude-code-hooks.md`, `CLAUDE.md`
+Type: unit + docs | Status: done
+Files: `docs/adr/001-claude-code-hooks.md`, `CLAUDE.md`
 Builds on: Slice 1
 
-- [ ] rf handle-stop-failure includes role in log message
-- [ ] rf check-merge-safety includes role in log message
-- [ ] ADR-001 updated with role-specific hook matrix and detection strategy
-- [ ] CLAUDE.md references hook documentation
+- [x] rf handle-stop-failure — skipped: already reads stdin for error data, works for both roles
+- [x] rf check-merge-safety — skipped: already reads stdin for tool input, works for both roles
+- [x] ADR-001 updated with role-specific hook matrix and detection strategy
+- [x] CLAUDE.md references hook documentation

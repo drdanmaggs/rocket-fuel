@@ -33,8 +33,8 @@ See `docs/adr/006-hybrid-plugin-architecture.md` for full rationale.
 | Agent definitions | `internal/plugin/agents/` (17 agents) | Integrator, Worker, TDD subagents, code-reviewer subagents, etc. |
 | Skills | `internal/plugin/skills/` (26 skills) | /tdd, /ship, /code-reviewer, /issue-scope, board-setup, etc. |
 | Rules | `internal/plugin/rules/` (8 rules) | testing, commit-discipline, code-quality, etc. |
-| Hooks | `.claude/settings.json` per repo | Project-scoped lifecycle hooks (installed by `rf launch`) |
-| Hook handlers | `cmd/*.go` | `rf prime`, `rf should-continue`, etc. |
+| Hooks | `.claude/settings.json` per repo | Project-scoped lifecycle hooks (installed by `rf launch`). See `docs/adr/001-claude-code-hooks.md` |
+| Hook handlers | `cmd/*.go` | Role-aware via `hookutil.DetectRole()` — different behavior for Integrator vs Worker |
 | Orchestration | `cmd/`, `internal/` | tmux, worktrees, watchdog, dashboard |
 
 Plugin files are embedded via `go:embed` and extracted on every `rf launch`. Always-overwrite — fork to customize.
