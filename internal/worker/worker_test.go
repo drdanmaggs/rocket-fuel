@@ -31,6 +31,8 @@ func (r *spawnTmuxRecorder) SendKeys(session, window, keys string) error {
 }
 
 func TestSpawnSendsClaudeCommandWithAgentWorkerFlag(t *testing.T) {
+	t.Parallel()
+
 	repoDir := testutil.InitTestRepo(t)
 
 	tm := newSpawnTmuxRecorder()
