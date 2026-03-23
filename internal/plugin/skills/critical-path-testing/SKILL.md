@@ -1,3 +1,8 @@
+---
+name: critical-path-testing
+description: "Risk-driven testing — identify and test critical user paths first, coverage is an output not the goal"
+---
+
 # Critical Path Testing Skill
 
 **Type:** Orchestrator (Multi-Phase)
