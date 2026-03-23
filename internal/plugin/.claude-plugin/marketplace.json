@@ -1,0 +1,15 @@
+{
+  "name": "rocket-fuel",
+  "description": "Rocket Fuel plugin marketplace — skills, agents, and rules for AI-assisted development",
+  "owner": {
+    "name": "drdanmaggs"
+  },
+  "plugins": [
+    {
+      "name": "rocket-fuel",
+      "description": "Multi-agent orchestrator for Claude Code — skills, agents, and rules for TDD, code review, shipping, and project management",
+      "source": ".",
+      "category": "development"
+    }
+  ]
+}
