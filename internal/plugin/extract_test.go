@@ -356,8 +356,8 @@ func TestExtractPlugin_extractsAllSkillDirectoriesWithReferencesIntact(t *testin
 	}
 
 	// ci-verify/ is empty on disk so Go's embed skips it; 26 directories extract
-	if len(skillDirs) != 26 {
-		t.Fatalf("expected 26 skill directories, got %d: %v", len(skillDirs), skillDirs)
+	if len(skillDirs) != 27 {
+		t.Fatalf("expected 27 skill directories, got %d: %v", len(skillDirs), skillDirs)
 	}
 
 	// Assert: each skill directory contains a SKILL.md file
