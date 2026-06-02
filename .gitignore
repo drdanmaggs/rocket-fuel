@@ -2,3 +2,7 @@ bin/
 .worktrees/
 .rocket-fuel/
 rocket-fuel
+
+# Runtime artifacts installed/managed by `rf launch` (not source — see CLAUDE.md)
+.claude/worktrees/
+.claude/settings.json
