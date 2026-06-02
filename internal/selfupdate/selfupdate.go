@@ -92,7 +92,8 @@ func goBuild(sourceDir, binaryPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), cmdTimeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx,
+	cmd := exec.CommandContext(
+		ctx,
 		"go", "build",
 		"-ldflags", fmt.Sprintf("-s -w -X github.com/drdanmaggs/rocket-fuel/cmd.Version=%s -X github.com/drdanmaggs/rocket-fuel/cmd.SourceDir=%s", shortHead(sourceDir), sourceDir),
 		"-o", binaryPath,

@@ -20,7 +20,7 @@ jobs:
 
       - name: Format check
         run: |
-          go install mvdan.cc/gofumpt@latest
+          go install mvdan.cc/gofumpt@v0.10.0
           test -z "$(gofumpt -l .)" || (echo "Files need formatting:" && gofumpt -l . && exit 1)
 
       - name: go mod tidy check

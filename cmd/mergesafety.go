@@ -43,7 +43,8 @@ func runMergeSafety(_ *cobra.Command, _ []string) error {
 	}
 
 	// Check PR state.
-	out, err := exec.CommandContext(context.Background(),
+	out, err := exec.CommandContext(
+		context.Background(),
 		"gh", "pr", "view", prNum,
 		"--json", "isDraft,statusCheckRollup",
 	).Output()

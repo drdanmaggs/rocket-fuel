@@ -33,7 +33,8 @@ type BoardSummary struct {
 
 // FetchBoard reads the current state of a GitHub Project board.
 func FetchBoard(run GHRunner, owner string, projectNumber int) (*BoardSummary, error) {
-	out, err := run("project", "item-list", strconv.Itoa(projectNumber),
+	out, err := run(
+		"project", "item-list", strconv.Itoa(projectNumber),
 		"--owner", owner,
 		"--format", "json",
 		"--limit", "200",
@@ -157,7 +158,8 @@ func FormatBoard(board *BoardSummary) string {
 }
 
 func fetchProjectTitle(run GHRunner, owner string, projectNumber int) string {
-	out, err := run("project", "view", strconv.Itoa(projectNumber),
+	out, err := run(
+		"project", "view", strconv.Itoa(projectNumber),
 		"--owner", owner, "--format", "json",
 	)
 	if err != nil {
