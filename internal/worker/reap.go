@@ -104,7 +104,8 @@ func Reap(tm tmux.Runner, sessionName, repoDir string, cfg ReapConfig) ([]ReapRe
 }
 
 func removeWorktree(repoDir, worktreeDir string) error {
-	cmd := exec.CommandContext(context.Background(),
+	cmd := exec.CommandContext(
+		context.Background(),
 		"git", "worktree", "remove", "--force", worktreeDir,
 	)
 	cmd.Dir = repoDir
@@ -116,7 +117,8 @@ func removeWorktree(repoDir, worktreeDir string) error {
 }
 
 func pruneWorktrees(repoDir string) error {
-	cmd := exec.CommandContext(context.Background(),
+	cmd := exec.CommandContext(
+		context.Background(),
 		"git", "worktree", "prune",
 	)
 	cmd.Dir = repoDir

@@ -84,7 +84,8 @@ func buildCompletionNudge(r worker.ReapResult) string {
 }
 
 func checkWorkerPR(branch string) string {
-	out, err := exec.CommandContext(context.Background(),
+	out, err := exec.CommandContext(
+		context.Background(),
 		"gh", "pr", "list", "--head", branch, "--json", "number,title", "--limit", "1",
 	).Output()
 	if err != nil {
