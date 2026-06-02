@@ -175,7 +175,8 @@ func repoOwnerAndName() (string, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	out, err := exec.CommandContext(ctx,
+	out, err := exec.CommandContext(
+		ctx,
 		"gh", "repo", "view", "--json", "owner,name",
 	).Output()
 	if err != nil {

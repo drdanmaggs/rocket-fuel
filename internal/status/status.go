@@ -123,7 +123,8 @@ func worktreeBranch(dir string) string {
 }
 
 func branchHasPR(branch string) bool {
-	cmd := exec.CommandContext(context.Background(),
+	cmd := exec.CommandContext(
+		context.Background(),
 		"gh", "pr", "list", "--head", branch, "--json", "number", "--limit", "1",
 	)
 	out, err := cmd.Output()
