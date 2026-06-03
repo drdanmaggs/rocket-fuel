@@ -10,6 +10,16 @@ import (
 // boardCacheFile is the on-disk cache location relative to the repo root.
 const boardCacheFile = "board-cache.json"
 
+// Board cache TTLs for the hook-driven callers (#213).
+const (
+	// StopHookBoardTTL caches the board for the Stop hook, which fires after
+	// every Claude response and is the worst rate-limit offender.
+	StopHookBoardTTL = 60 * time.Second
+	// SessionBoardTTL caches the board for the session-priming hooks (prime,
+	// precompact), which fire far less often than the Stop hook.
+	SessionBoardTTL = 30 * time.Second
+)
+
 // boardCacheEnvelope wraps a cached board with the time it was fetched.
 type boardCacheEnvelope struct {
 	FetchedAt time.Time     `json:"fetched_at"`

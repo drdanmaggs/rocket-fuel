@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"syscall"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/hookutil"
 	"github.com/drdanmaggs/rocket-fuel/internal/prime"
@@ -70,7 +71,7 @@ func runPrecompactWith(input io.Reader, out io.Writer) error {
 
 	// Load board state (optional — project may not be linked).
 	if cfg, loadErr := loadProjectConfig(); loadErr == nil {
-		board, fetchErr := project.FetchBoard(ghRunner, cfg.Owner, cfg.ProjectNumber)
+		board, fetchErr := project.FetchBoardCached(ghRunner, cfg.Owner, cfg.ProjectNumber, repoDir, project.SessionBoardTTL, time.Now())
 		if fetchErr == nil {
 			in.Board = board
 		}
