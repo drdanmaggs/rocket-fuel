@@ -55,7 +55,7 @@ func runPrimeWith(input io.Reader, out io.Writer) error {
 	if role == hookutil.RoleIntegrator {
 		// Load board state (optional — project may not be linked).
 		if cfg, loadErr := loadProjectConfig(); loadErr == nil {
-			board, fetchErr := project.FetchBoard(ghRunner, cfg.Owner, cfg.ProjectNumber)
+			board, fetchErr := project.FetchBoardCached(ghRunner, cfg.Owner, cfg.ProjectNumber, repoDir, project.SessionBoardTTL, time.Now())
 			if fetchErr == nil {
 				in.Board = board
 			}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/drdanmaggs/rocket-fuel/internal/hookutil"
 	"github.com/drdanmaggs/rocket-fuel/internal/project"
@@ -44,7 +45,7 @@ func runShouldContinueWith(input io.Reader) error {
 	// Check board for Ready items.
 	cfg, err := loadProjectConfig()
 	if err == nil {
-		board, fetchErr := project.FetchBoard(ghRunner, cfg.Owner, cfg.ProjectNumber)
+		board, fetchErr := project.FetchBoardCached(ghRunner, cfg.Owner, cfg.ProjectNumber, repoDir, project.StopHookBoardTTL, time.Now())
 		if fetchErr == nil {
 			next := project.NextReady(board)
 			if next != nil {
