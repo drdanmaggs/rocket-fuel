@@ -18,7 +18,7 @@ jobs:
       contains(join(github.event.commits.*.message, ' '), 'perf:')
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
