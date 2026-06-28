@@ -32,9 +32,9 @@ Read the files listed in your phase brief:
 - **Relevant source files** — understand existing code structure, naming conventions, patterns
 - **Related test files** — learn how similar features are tested
 
-### 2. Apply Sequential Thinking
+### 2. Evaluate the Plan
 
-Use sequential thinking to evaluate the plan systematically:
+Work through the plan systematically — reason inline; reach for Sequential Thinking only if the plan is large or genuinely tangled.
 
 **For each plan slice, answer:**
 

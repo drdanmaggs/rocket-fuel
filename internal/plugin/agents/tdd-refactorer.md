@@ -95,8 +95,8 @@ Name the pattern in your return summary (e.g., "Extract Method — pulled valida
 
 Run tests using the command from your phase brief, scoped by test type:
 - **Unit tests:** run the test file only
-- **Integration tests:** run the full suite
-- **E2E tests:** run the E2E suite
+- **Integration tests:** run the affected feature's test file(s) only — **not** the full suite (full regression is the CI/PR gate)
+- **E2E tests:** run the relevant spec only
 
 ## Return (MANDATORY)
 
