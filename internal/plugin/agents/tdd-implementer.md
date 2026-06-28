@@ -37,8 +37,8 @@ Before writing anything, read the files listed in your phase brief:
 
 Run tests using the command from your phase brief, scoped by test type:
 - **Unit tests:** run the test file only
-- **Integration tests:** run the full suite
-- **E2E tests:** run the E2E suite
+- **Integration tests:** run the affected feature's test file(s) only — **not** the full suite (full regression is the CI/PR gate)
+- **E2E tests:** run the relevant spec only
 
 This test + all previous tests pass = GREEN gate passed. This test fails = fix your implementation. Previous test fails = you broke something, fix it without modifying tests.
 

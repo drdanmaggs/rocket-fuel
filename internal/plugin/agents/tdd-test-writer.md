@@ -1,7 +1,7 @@
 ---
 name: tdd-test-writer
 description: "Writes comprehensive tests based on approved strategy and verifies they fail correctly (RED phase)"
-model: opus
+model: sonnet
 tools: Read, Grep, Glob, Write, Edit, Bash
 color: red
 ---

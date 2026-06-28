@@ -16,9 +16,9 @@
 - What tests were written? (test files, assertions)
 - What constraints/boundaries exist? (validation, limits, data types)
 
-### 2. Pattern Analysis (Sequential Thinking)
+### 2. Pattern Analysis
 
-**Use Sequential Thinking (Opus) to explore:**
+**Explore the change (use Sequential Thinking only if the pattern space is large or non-obvious):**
 
 #### a. Same Pattern Class
 - What other code has this same structure?
@@ -163,7 +163,7 @@ What would you like to do?
 
 ### ALWAYS
 - Use Opus model (deep reasoning required)
-- Use Sequential Thinking for pattern analysis
+- Use Sequential Thinking when the pattern analysis is genuinely complex — not by default
 - Verify findings with code search before reporting
 - Filter false positives — only report real gaps
 - Prioritize findings (don't flood with low-value tests)
