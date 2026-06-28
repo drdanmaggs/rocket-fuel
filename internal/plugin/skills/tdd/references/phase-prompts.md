@@ -15,7 +15,7 @@ Plan file: {plan_file_path}            # e.g., "docs/plans/2026-02-07-category-s
 Test command: {test_command}           # e.g., "pnpm vitest run --reporter=verbose"
 Test file pattern: {test_pattern}       # e.g., "colocated *.test.ts" or "tests/__tests__/"
 Test helpers: {helper_paths}            # e.g., "tests/helpers/isolated-test-household.ts"
-Standards file: {standards_path}        # .claude/skills/tdd/references/test-standards.md
+Standards file: {standards_path}        # this skill's bundled references/test-standards.md (absolute path resolved in Stage 0)
 E2E test command: {e2e_test_command}   # e.g., "pnpm playwright test"
 E2E test directory: {e2e_test_dir}     # e.g., "tests/e2e/"
 Auth fixture: {auth_fixture_path}      # e.g., "tests/e2e/fixtures/auth-fixture.ts"
@@ -35,7 +35,7 @@ User chose "Auto-generate plan" from Stage 0-plan heuristic gate.
 ````
 Task tool:
   subagent_type: "Plan"
-  model: "opus"
+  model: "sonnet"
   description: "Generate TDD implementation plan"
   prompt: |
     ## Task
@@ -110,7 +110,7 @@ Task tool:
        - pgtap: Database constraints, triggers, RLS (PostgreSQL)
 
     6. **Context to read before planning**:
-       - `.claude/skills/tdd/references/test-standards.md` — testing patterns
+       - this skill's bundled `references/test-standards.md` — testing patterns
        - Existing test files in the codebase — follow conventions
        - Related source files — understand current architecture
        - Database schema if relevant (supabase/migrations/)
@@ -147,7 +147,7 @@ Fresh eyes quality gate — catch TDD gaps, YAGNI violations, missing slices, ar
 
 ````
 Task tool:
-  subagent_type: "general-purpose"
+  subagent_type: "tdd-plan-reviewer"
   model: "opus"
   description: "Review TDD plan for quality and completeness"
   prompt: |
@@ -163,7 +163,7 @@ Task tool:
 
     ## Evaluation Criteria
 
-    For each plan slice, use sequential thinking to evaluate:
+    For each plan slice, evaluate (use Sequential Thinking only for genuinely complex plans):
 
     1. **Testability** — Can you write a failing test for this slice? Is there a clear assertion that will pass/fail?
     2. **Slice Scope** — Is this a single logical unit or mixing multiple concerns?
@@ -261,9 +261,9 @@ Task tool:
 
 ## TIDY FIRST Phase: tdd-refactorer (prep)
 
-**When:** Before RED phase, to prep existing code for new behavior.
+**When:** Before RED, **only if the Opus orchestrator judges the code the next test will touch needs structural prep** — a long/tangled function about to grow, poor naming that obscures where the new code goes, or duplication the new code would amplify. For new code or already-clean targets, **skip the spawn entirely** — don't pay an agent launch to be told "SKIP".
 
-**Purpose:** Evaluate if existing code needs structural changes before adding new behavior (Kent Beck's "Tidy First?" pattern).
+**Purpose:** Create space for new behavior before writing the test (Kent Beck's "Tidy First?" pattern), when there's genuinely something to tidy.
 
 ````
 Task tool:
@@ -282,36 +282,21 @@ Task tool:
 
 ## RED Phase: tdd-test-writer
 
-### Pre-RED Sequential Thinking (Orchestrator)
+### Pre-RED check (Orchestrator)
 
-Before spawning tdd-test-writer, the orchestrator MUST use Sequential Thinking to verify the "one test" constraint:
+Confirm two things inline before spawning tdd-test-writer — Opus does this in a sentence, no formal thinking pass:
 
-```
-mcp__sequential-thinking__sequentialthinking:
-  thought: "I need to spawn tdd-test-writer for the RED phase. Let me verify what I'm asking it to do."
-  thoughtNumber: 1
-  totalThoughts: 3
-  nextThoughtNeeded: true
+1. The next unchecked plan item is ONE specific test.
+2. The brief asks for EXACTLY ONE test — never "tests for these rules" (that implies batching).
 
-  thought: "Looking at the plan file, the next unchecked test is: '{specific_test_description}'. That's ONE specific test."
-  thoughtNumber: 2
-  totalThoughts: 3
-  nextThoughtNeeded: true
-
-  thought: "I will spawn tdd-test-writer with a brief that says: write EXACTLY ONE test for '{specific_test_description}'. Not multiple tests for this function. Not a batch of simple tests. ONE test. This is a hard gate — if tdd-test-writer adds multiple tests, I must reject the work and respawn with a stronger constraint."
-  thoughtNumber: 3
-  totalThoughts: 3
-  nextThoughtNeeded: false
-```
-
-This explicit reasoning prevents the orchestrator from accidentally encouraging batching (e.g., "write tests for these validation rules" → implies multiple tests).
+Sequential Thinking is available but **not required** here — reach for it only if the next test is genuinely ambiguous (unclear boundary, multiple plausible interpretations). The ONE TEST gate is still hard; verifying it just doesn't warrant a ritual.
 
 ### Template
 
 ```
 Task tool:
   subagent_type: "tdd-test-writer"
-  model: "opus"
+  model: "sonnet"
   description: "RED: {test_description}"
   prompt: |
     Mode: unit/integration  # Always "unit/integration" in inner loop. Acceptance test was written once in Stage 0f.
@@ -375,6 +360,8 @@ Task tool:
 
 ## REFACTOR Phase: tdd-refactorer
 
+**When:** After GREEN, **only if the orchestrator sees something worth cleaning** — duplication, a complex conditional, unclear naming, or a GREEN diff larger than ~10 lines. Trivial diffs: skip the spawn. A full-slice refactor still runs once at each slice boundary as the safety net. Bump `model` to `sonnet` for a substantial multi-file refactor; Haiku is fine for localized cleanups.
+
 ````
 Task tool:
   subagent_type: "tdd-refactorer"
@@ -403,7 +390,7 @@ Task tool:
   prompt: |
     You are performing regression analysis at the end of a TDD workflow.
 
-    Read `.claude/skills/tdd/references/regression-analysis.md` for full methodology.
+    Read this skill's bundled `references/regression-analysis.md` for full methodology.
 
     ## Context
     Feature/Bug: {description from plan or diagnosis}
@@ -411,7 +398,7 @@ Task tool:
     Tests written: {list of test files created/modified}
 
     ## Your Task
-    1. Use Sequential Thinking to analyze the change for patterns, edge cases, and integration risks
+    1. Analyze the change for patterns, edge cases, and integration risks (use Sequential Thinking if the change is complex or the pattern space is large)
     2. Search codebase (Grep/Read) to verify findings
     3. Generate test recommendations using the priority rubric
     4. Return findings in the mandatory output format (see regression-analysis.md)

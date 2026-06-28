@@ -96,7 +96,7 @@ Task tool:
   model: "sonnet"
   description: "Generate TDD implementation plan"
   prompt: |
-    Read `.claude/skills/tdd/references/test-standards.md` for testing patterns.
+    Read this tdd skill's bundled `references/test-standards.md` for testing patterns (the orchestrator passes its absolute path).
 
     Task: Create a TDD implementation plan in Kent Beck format.
 
@@ -181,7 +181,7 @@ Spawn Explore agent (`subagent_type="Explore"`, thoroughness `"very thorough"`).
 - Test command: `pnpm vitest run --reporter=verbose`
 - Test file pattern: colocated `*.test.ts` or `tests/__tests__/`
 - Test helpers: `tests/helpers/isolated-test-household.ts`
-- Standards file: `.claude/skills/tdd/references/test-standards.md`
+- Standards file: this skill's bundled `references/test-standards.md` (absolute path resolved in Stage 0)
 - Bug context: PR #123 or main..fix/bug or diagnosis (empty for features)
 
 ### 0b. Clarify Intent
@@ -202,7 +202,7 @@ If a GitHub issue exists, read it (including comments) — but still confirm und
 
 **Use Context7 MCP** first if feature involves framework behavior (Next.js, Supabase, React).
 
-Use **Sequential Thinking** to decompose into ordered incremental slices. Each slice = one RED-GREEN-REFACTOR cycle that builds on the previous.
+Decompose into ordered incremental slices — each slice = one RED-GREEN-REFACTOR cycle that builds on the previous. Reason inline; reach for Sequential Thinking only if the decomposition is genuinely tangled.
 
 **Output format (for user approval):**
 
@@ -228,7 +228,7 @@ Slice 3: [edge cases + error handling]
 
 ### 0d. Write Plan
 
-After user approves slices, **decompose each slice into individual tests** using Sequential Thinking and write to `docs/plans/YYYY-MM-DD-<feature-slug>.md`.
+After user approves slices, **decompose each slice into individual tests** and write to `docs/plans/YYYY-MM-DD-<feature-slug>.md`. (Use Sequential Thinking only if a slice is genuinely hard to break down.)
 
 Use today's date. Slugify the feature name (lowercase, hyphens).
 

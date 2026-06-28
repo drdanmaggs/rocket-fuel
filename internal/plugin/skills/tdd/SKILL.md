@@ -17,6 +17,8 @@ Context-isolated RED/GREEN/REFACTOR. Each phase runs in a separate subagent to p
 
 **Lifecycle:** This skill spans the ENTIRE session. After planning completes (Stage 0), continue with Session Constants → The Loop. **Never use `EnterPlanMode`** — it causes context amnesia. Use the Plan subagent instead.
 
+**Orchestrator judgment (you run on Opus):** You are the master brain. Make cheap routing calls *inline* — whether code needs prep, whether a diff needs refactoring, which test is next — rather than spawning an agent or running a formal thinking pass to decide nothing. Spawn subagents when there's real work; use **Sequential Thinking only when a decision is genuinely hard** (ambiguous scope, tangled decomposition, subtle bug). Default to reasoning directly. The subagent model tiers reflect this: **Sonnet** for per-cycle test-writing, **Haiku** for implementation/refactoring execution, **Opus** reserved for one-shot high-stakes reasoning (plan review, regression analysis). You (the orchestrator) inherit the main chat's model — the skill never sets it.
+
 ## Mode Detection
 
 | User Signal | Mode |
@@ -37,18 +39,14 @@ See [when-to-skip-tdd.md](references/when-to-skip-tdd.md) for detailed criteria,
 
 ### Branch Creation (First Thing)
 
-Before any exploration or planning, pull latest main and create a feature branch:
-
-```bash
-git checkout main && git pull origin main && git checkout -b <type>/<short-slug>
-```
+Before any exploration or planning, get onto a fresh feature branch — **following the project's branching conventions** (check the project and global `CLAUDE.md`). Do **not** hardcode `git checkout main`: in worktree-based setups `main` is checked out elsewhere, so that command fails or detaches you. Branch from the current HEAD / latest default branch however the project's setup dictates.
 
 - **Name it yourself** — don't ask the user. Derive from the feature/bug description.
 - `feat/add-category-search`, `fix/duplicate-household-creation`, `refactor/extract-validation-logic`
 - Use the same `type` prefix as the commits (`feat/`, `fix/`, `refactor/`)
 - Keep it short (3-5 words max, kebab-case)
 
-This ensures all exploration, planning, and coding happens against the latest codebase.
+This ensures all exploration, planning, and coding happens on a clean branch against the latest codebase.
 
 ### Planning Decision Tree
 
@@ -78,7 +76,7 @@ This ensures all exploration, planning, and coding happens against the latest co
 - Plan approved → Proceed to **Stage 0f** (Acceptance Test)
 
 **0f — Acceptance Test (GOOS Outer Loop)**
-After plan is approved, before inner loop begins. Use Sequential Thinking: does this feature have user-facing behaviour (new page, form, flow, navigation, toast, dialog)?
+After plan is approved, before inner loop begins. Decide inline: does this feature have user-facing behaviour (new page, form, flow, navigation, toast, dialog)?
 - YES → spawn tdd-test-writer in `Mode: acceptance` (see [phase-prompts.md](references/phase-prompts.md#stage-0f-acceptance-test-goos-outer-loop))
 - NO → skip 0f, set `Acceptance test path: none` in session constants
 
@@ -95,14 +93,14 @@ Then proceed to **Session Constants** (Stage 0a) → inner loop.
 
 ### Session Constants
 
-Discovered during Stage 0 (Explore agent) and reused in every phase brief. When discovering constants, also find: E2E test command (`playwright` in package.json scripts), E2E test directory (look for `tests/e2e/` or `e2e/`), and auth fixture path (look for `auth-fixture.ts` in E2E directories).
+Discovered during Stage 0 (Explore agent) and reused in every phase brief. Prefer values the project's `CLAUDE.md` already documents (test commands especially); otherwise discover them. When discovering constants, also find: E2E test command (`playwright` in package.json scripts), E2E test directory (look for `tests/e2e/` or `e2e/`), and auth fixture path (look for `auth-fixture.ts` in E2E directories). Also resolve the **absolute** path to this skill's bundled `references/test-standards.md` (wherever the plugin is installed) so subagents can actually read it.
 
 | Constant | Example | Notes |
 |----------|---------|-------|
 | Test command | `pnpm vitest run --reporter=verbose --bail 1` | `--bail 1` stops on first failure — faster feedback in GREEN and REFACTOR gates |
 | Test file pattern | colocated `*.test.ts` or `tests/__tests__/` | |
 | Test helpers | `tests/helpers/isolated-test-household.ts` | |
-| Standards file | `.claude/skills/tdd/references/test-standards.md` | |
+| Standards file | absolute path to this skill's `references/test-standards.md` | Resolve in Stage 0 (plugin install path — not a hardcoded `.claude/` path) |
 | Bug context | PR #123 or main..fix/bug or diagnosis summary | (empty for features) |
 | E2E test command | `pnpm playwright test` | Discovered in Stage 0a |
 | E2E test directory | `tests/e2e/` | Discovered in Stage 0a |
@@ -137,21 +135,12 @@ Read the active plan file in `docs/plans/`. Find the **first unchecked** `- [ ]`
 
 **If this is the first unchecked test of a new slice** → `TaskUpdate` the slice's task to `status: in_progress`.
 
-### 2. TIDY FIRST — Prep refactoring (always)
+### 2. TIDY FIRST — Prep refactoring (only when needed)
 
-**Always spawn the tdd-refactorer subagent for prep analysis.** It will read the code the next test will touch and decide whether prep tidying is needed.
+**You (Opus) judge whether the code the next test will touch needs structural prep** before new behavior goes in (Kent Beck's "Tidy First?"). Spawn the tdd-refactorer (Mode: PREP) **only if** there's a real reason: a long/tangled function about to grow, poor naming that obscures where the new code goes, or duplication the new code would amplify.
 
-Why this works:
-- Agent evaluates actual code structure, not orchestrator's guess
-- Fast decisions (~5 sec with Haiku) when code is ready
-- Consistent with POST-GREEN refactor approach
-- Removes heuristic from orchestrator
-
-Compose phase brief (see [phase-prompts.md](references/phase-prompts.md#tidy-first-phase-tdd-refactorer-prep)) with next test description and files to be modified.
-
-**Refactorer will either:**
-- Skip: "Code is ready — clean structure, easy to extend"
-- Prep tidy: Make structural changes to create space for new behavior
+- **New code, or target already clean/small/clear** → skip the spawn, note `TIDY FIRST: skip`, go to RED. Don't launch an agent to be told "SKIP".
+- **Genuine prep needed** → spawn tdd-refactorer with the brief (see [phase-prompts.md](references/phase-prompts.md#tidy-first-phase-tdd-refactorer-prep)); structural changes only.
 
 **GATE:** ALL tests still PASS after tidying (when tidying is done).
 
@@ -165,14 +154,11 @@ refactor: [prep tidy — what was restructured and why]
 
 ### 3. RED — Spawn tdd-test-writer
 
-**Before spawning:** Use Sequential Thinking to verify:
-1. Which specific test from the plan is next?
-2. How many tests should tdd-test-writer write? (Answer: EXACTLY ONE)
-3. Why one? (TDD requires tight feedback: 1 test → 1 implementation → 1 refactor. Batching breaks the cycle.)
+**Before spawning,** confirm inline (no formal thinking pass): the next unchecked plan item is the next test, and the brief asks for **EXACTLY ONE** test (1 test → 1 implementation → 1 refactor; batching breaks the cycle). Reach for Sequential Thinking only if the next test is genuinely ambiguous.
 
 Compose a lean phase brief using the template from [phase-prompts.md](references/phase-prompts.md#red-phase-tdd-test-writer). Pass file paths, not file contents.
 
-Spawn `tdd-test-writer` subagent.
+Spawn `tdd-test-writer` subagent on **Sonnet** (writing one test from a vetted plan item is well within Sonnet's range, and runs every cycle).
 
 **GATE 1 — Test Count:** Verify tdd-test-writer added EXACTLY ONE test.
 - One test added → proceed to GATE 2
@@ -217,21 +203,11 @@ test: [test description]
 feat: [what was implemented to pass it]
 ```
 
-### 5. REFACTOR — Spawn tdd-refactorer (always)
+### 5. REFACTOR — Spawn tdd-refactorer (only when needed)
 
-**Always spawn the tdd-refactorer subagent.** It will analyze the code and decide whether refactoring is needed or skip.
+**You (Opus) judge the GREEN diff.** If it introduced something worth cleaning — duplication, a complex conditional, unclear naming, or it's more than ~10 lines — spawn the tdd-refactorer (Mode: REFACTOR). If the change is small and clean, skip the spawn, note `REFACTOR: skip`, and move on. (Cumulative mess is still caught by the mandatory full-slice refactor at each slice boundary — see step 6.)
 
-Why this works:
-- Agent has better context by reading the actual code
-- With Haiku model, "no refactoring needed" decisions are fast (~5 sec) and cheap
-- Removes heuristic judgment from orchestrator
-- Consistent process every cycle
-
-Compose phase brief (see [phase-prompts.md](references/phase-prompts.md#refactor-phase-tdd-refactorer)) with test + implementation file paths.
-
-**Refactorer will either:**
-- Skip: "No refactoring needed — change is clean/small/well-structured"
-- Refactor: Make structural improvements, verify tests still pass
+Compose phase brief (see [phase-prompts.md](references/phase-prompts.md#refactor-phase-tdd-refactorer)) with test + implementation file paths. Bump the refactorer to `model: "sonnet"` for a substantial multi-file refactor; Haiku is fine for localized cleanups.
 
 **GATE:** ALL tests still PASS after refactoring (when refactoring is done).
 
@@ -274,6 +250,10 @@ Read the plan file:
 - Don't re-read plan file if you already know next test
 - Don't re-read test file if gate just passed
 - Trust subagent results
+
+❌ **Formal Sequential Thinking for routine calls**
+- The one-test check, PREP/REFACTOR skip decisions, and "which test is next" are inline judgments
+- Save Sequential Thinking for genuinely hard cases (ambiguous scope, subtle bug)
 
 #### What to Keep Doing
 
@@ -338,7 +318,7 @@ Otherwise, run: `{e2e_test_command} {acceptance_test_path}`
 **PASSES** → proceed to completion banner.
 
 **FAILS** → gap cycle (max 2):
-1. Use Sequential Thinking to identify the specific failing assertion
+1. Identify the specific failing assertion (Sequential Thinking only if the failure is non-obvious)
 2. Create a "Gap" slice: describe the missing behaviour precisely
 3. Run one RED-GREEN-REFACTOR cycle for the gap (unit/integration mode, not acceptance mode)
 4. Re-run acceptance test
@@ -468,7 +448,7 @@ Same as Feature loop step 5. If refactoring done, commit separately as `refactor
 
 **Applies to:** Both feature and bug-fix modes
 
-**Use Sequential Thinking to evaluate:**
+**Evaluate** (inline; Sequential Thinking only if the call is genuinely close):
 
 > "Given test coverage and change scope, is deep edge case analysis (10 min, Opus) likely to find meaningful gaps?"
 
