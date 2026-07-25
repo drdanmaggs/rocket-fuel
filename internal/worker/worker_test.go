@@ -76,11 +76,12 @@ func TestRouteSkillFromLabels(t *testing.T) {
 		{"bug-fix workflow label", []string{"workflow:bug-fix"}, "/claude-skills:tdd"},
 		{"bug label routes to tdd", []string{"bug"}, "/claude-skills:tdd"},
 		{"bug-fix label routes to tdd", []string{"bug-fix"}, "/claude-skills:tdd"},
-		{"epc label", []string{"workflow:epc"}, "/epc"},
+		{"epc label falls through to tdd default", []string{"workflow:epc"}, "/claude-skills:tdd"},
 		{"issue-scope label", []string{"workflow:issue-scope"}, "/claude-skills:issue-scope"},
 		{"no workflow label defaults to tdd", []string{"enhancement", "v0.1"}, "/claude-skills:tdd"},
 		{"empty labels defaults to tdd", nil, "/claude-skills:tdd"},
 		{"multiple labels picks first workflow", []string{"v0.1", "workflow:tdd", "workflow:epc"}, "/claude-skills:tdd"},
+		{"every routed skill is plugin-qualified", []string{"workflow:issue-scope"}, "/claude-skills:issue-scope"},
 	}
 
 	for _, tt := range tests {
