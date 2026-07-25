@@ -1,7 +1,7 @@
 {
   "name": "rocket-fuel",
-  "version": "0.2.0",
-  "description": "Multi-agent orchestrator for Claude Code — skills, agents, and rules for TDD, code review, shipping, and project management",
+  "version": "0.3.0",
+  "description": "Multi-agent orchestrator for Claude Code — Integrator/Worker agents, board setup, and worktree management",
   "author": {
     "name": "drdanmaggs"
   }

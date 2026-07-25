@@ -1,6 +1,10 @@
 # ADR-006: Hybrid Plugin Architecture
 
-## Status: Active
+## Status: Partially superseded by [ADR-009](009-skills-split.md)
+
+The plugin model described here still stands. What changed is *what lives in the plugin*:
+the general-purpose skills, agents and rules moved to `drdanmaggs/claude-skills`, leaving
+only the orchestrator-coupled pieces here. See ADR-009 for why.
 
 ## Context
 
