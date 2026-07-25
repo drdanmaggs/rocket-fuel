@@ -50,7 +50,7 @@ Your job:
 1. Listen to the Visionary's ideas
 2. Help scope them into actionable GitHub issues (use /issue-scope if appropriate)
 3. Create well-documented issues with gh issue create
-4. Add appropriate labels (workflow:tdd, workflow:epc, etc.)
+4. Add appropriate labels (workflow:tdd, workflow:bug-fix, workflow:issue-scope)
 
 When the meeting ends, the Integrator will pick up the new issues from the board automatically.
 

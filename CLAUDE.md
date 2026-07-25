@@ -9,7 +9,7 @@ Read `docs/vision.md` for the full concept, `docs/gastown-lessons.md` for prior 
 - **Visionary** = the human. Owns product direction (what/why). Scopes vague issues. Approves merges. Calls meetings.
 - **Integrator** = AI agent (Claude Code, runs continuously). Owns execution (how/when). Manages board, dispatches workers, reviews PRs. Never scopes issues — surfaces vague ones to the Visionary. Can call meetings when it needs the Visionary's input.
 - **Watchdog** = Go daemon (background). Keeps agents alive, detects stuck workers, reaps completed ones. No decisions — purely mechanical. Event-driven via Claude Code hooks.
-- **Workers** = ephemeral Claude Code instances in git worktrees. Run skills (`/tdd`, `/bug-fix`, `/epc`) on assigned issues. Fully autonomous (GUPP).
+- **Workers** = ephemeral Claude Code instances in git worktrees. Run skills (`/claude-skills:tdd`, `/claude-skills:issue-scope`) on assigned issues. Fully autonomous (GUPP).
 - **Mission Control** = Stream Deck plugin (separate repo: `drdanmaggs/mission-control`). Physical dashboard for the Visionary.
 
 See `docs/adr/002-agent-roles.md` for full role definitions and boundaries.
