@@ -26,18 +26,20 @@ This means:
 
 ## Architecture: Hybrid Plugin Model
 
-See `docs/adr/006-hybrid-plugin-architecture.md` for full rationale.
+See `docs/adr/006-hybrid-plugin-architecture.md` for the original rationale and
+`docs/adr/009-skills-split.md` for why most of it moved out.
 
 | Component | Location | Purpose |
 |-----------|----------|---------|
-| Agent definitions | `internal/plugin/agents/` (17 agents) | Integrator, Worker, TDD subagents, code-reviewer subagents, etc. |
-| Skills | `internal/plugin/skills/` (26 skills) | /tdd, /ship, /code-reviewer, /issue-scope, board-setup, etc. |
-| Rules | `internal/plugin/rules/` (8 rules) | testing, commit-discipline, code-quality, etc. |
+| Agent definitions | `internal/plugin/agents/` (2 agents) | Integrator and Worker — the only two that depend on the orchestrator |
+| Skills | `internal/plugin/skills/` (2 skills) | `board-setup`, `worktree-reset` |
 | Hooks | `.claude/settings.json` per repo | Project-scoped lifecycle hooks (installed by `rf launch`). See `docs/adr/001-claude-code-hooks.md` |
 | Hook handlers | `cmd/*.go` | Role-aware via `hookutil.DetectRole()` — different behavior for Integrator vs Worker |
 | Orchestration | `cmd/`, `internal/` | tmux, worktrees, watchdog, dashboard |
 
-Plugin files are embedded via `go:embed` and extracted on every `rf launch`. Always-overwrite — fork to customize.
+**General-purpose skills live in [`drdanmaggs/claude-skills`](https://github.com/drdanmaggs/claude-skills)**, not here — `/tdd`, `/ship`, `/code-reviewer`, `/issue-scope` and the TDD/code-review subagents. Workers dispatch to them as `/claude-skills:<name>`, so **both plugins must be installed** for Rocket Fuel to work.
+
+There is no `rules/` directory. `rules/` is not a Claude Code plugin primitive — files placed there ship to the install cache and are never loaded. Rules belong in `~/.claude/rules/`.
 
 ## Hooks Strategy
 

@@ -269,7 +269,8 @@ func TestExtractPlugin_extractsAll17AgentDefinitions(t *testing.T) {
 		t.Fatalf("ExtractPlugin() returned unexpected error: %v", err)
 	}
 
-	// Assert: agents/ directory contains exactly 17 .md files
+	// Assert: agents/ directory contains exactly the 2 orchestrator agents.
+	// The 15 general-purpose agents moved to drdanmaggs/claude-skills.
 	agentsDir := filepath.Join(targetDir, "agents")
 	entries, err := os.ReadDir(agentsDir)
 	if err != nil {
@@ -277,22 +278,7 @@ func TestExtractPlugin_extractsAll17AgentDefinitions(t *testing.T) {
 	}
 
 	expectedAgents := []string{
-		"codebase-scanner.md",
-		"code-reviewer-bug-hunter.md",
-		"code-reviewer-context-reviewer.md",
-		"code-reviewer-performance-reviewer.md",
-		"code-reviewer-quality-reviewer.md",
-		"code-reviewer-standards-checker.md",
-		"code-reviewer-test-coverage-reviewer.md",
-		"code-reviewer-validator.md",
-		"debt-hunter.md",
-		"documentation-maintainer.md",
 		"integrator.md",
-		"progress-update.md",
-		"tdd-implementer.md",
-		"tdd-plan-reviewer.md",
-		"tdd-refactorer.md",
-		"tdd-test-writer.md",
 		"worker.md",
 	}
 
@@ -304,8 +290,8 @@ func TestExtractPlugin_extractsAll17AgentDefinitions(t *testing.T) {
 		}
 	}
 
-	if len(mdFiles) != 17 {
-		t.Fatalf("expected 17 agent .md files, got %d: %v", len(mdFiles), mdFiles)
+	if len(mdFiles) != len(expectedAgents) {
+		t.Fatalf("expected %d agent .md files, got %d: %v", len(expectedAgents), len(mdFiles), mdFiles)
 	}
 
 	// Assert: each expected agent file exists, is non-empty, and starts with "---" or "#"
@@ -341,7 +327,8 @@ func TestExtractPlugin_extractsAllSkillDirectoriesWithReferencesIntact(t *testin
 		t.Fatalf("ExtractPlugin() returned unexpected error: %v", err)
 	}
 
-	// Assert: skills/ directory contains exactly 27 subdirectories
+	// Assert: skills/ contains exactly the 2 orchestrator-coupled skills.
+	// The 24 general-purpose skills moved to drdanmaggs/claude-skills.
 	skillsDir := filepath.Join(targetDir, "skills")
 	entries, err := os.ReadDir(skillsDir)
 	if err != nil {
@@ -355,9 +342,9 @@ func TestExtractPlugin_extractsAllSkillDirectoriesWithReferencesIntact(t *testin
 		}
 	}
 
-	// ci-verify/ is empty on disk so Go's embed skips it; 26 directories extract
-	if len(skillDirs) != 27 {
-		t.Fatalf("expected 27 skill directories, got %d: %v", len(skillDirs), skillDirs)
+	expectedSkills := []string{"board-setup", "worktree-reset"}
+	if len(skillDirs) != len(expectedSkills) {
+		t.Fatalf("expected %d skill directories, got %d: %v", len(expectedSkills), len(skillDirs), skillDirs)
 	}
 
 	// Assert: each skill directory contains a SKILL.md file
@@ -373,69 +360,11 @@ func TestExtractPlugin_extractsAllSkillDirectoriesWithReferencesIntact(t *testin
 		}
 	}
 
-	// Assert: complex subdirectories extract correctly (skills/tdd/references/)
-	referencesDir := filepath.Join(skillsDir, "tdd", "references")
-	info, err := os.Stat(referencesDir)
-	if err != nil {
-		t.Fatalf("expected skills/tdd/references/ to exist, got error: %v", err)
-	}
-	if !info.IsDir() {
-		t.Fatal("skills/tdd/references/ should be a directory")
-	}
-
-	// Assert: files within references/ extract correctly
-	phasePromptsPath := filepath.Join(referencesDir, "phase-prompts.md")
-	data, err := os.ReadFile(phasePromptsPath)
-	if err != nil {
-		t.Fatalf("expected skills/tdd/references/phase-prompts.md to exist, got error: %v", err)
-	}
-	if len(data) == 0 {
-		t.Fatal("skills/tdd/references/phase-prompts.md is empty")
-	}
-}
-
-func TestExtractPlugin_extractsAllRuleFiles(t *testing.T) {
-	t.Parallel()
-
-	targetDir := t.TempDir()
-
-	// Act
-	err := plugin.ExtractPlugin(targetDir)
-	if err != nil {
-		t.Fatalf("ExtractPlugin() returned unexpected error: %v", err)
-	}
-
-	// Assert: rules/ directory exists and contains exactly 8 .md files
-	rulesDir := filepath.Join(targetDir, "rules")
-	entries, err := os.ReadDir(rulesDir)
-	if err != nil {
-		t.Fatalf("expected rules/ directory to exist, got error: %v", err)
-	}
-
-	var mdFiles []string
-	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".md") {
-			mdFiles = append(mdFiles, entry.Name())
-		}
-	}
-
-	if len(mdFiles) != 8 {
-		t.Fatalf("expected 8 rule .md files, got %d: %v", len(mdFiles), mdFiles)
-	}
-
-	// Assert: key rule files exist and are non-empty
-	keyRules := []string{"testing.md", "commit-discipline.md", "code-quality.md"}
-	for _, ruleName := range keyRules {
-		rulePath := filepath.Join(rulesDir, ruleName)
-		data, err := os.ReadFile(rulePath)
-		if err != nil {
-			t.Errorf("expected rule file %q to exist, got error: %v", ruleName, err)
-			continue
-		}
-		if len(data) == 0 {
-			t.Errorf("rule file %q is empty", ruleName)
-		}
-	}
+	// Nested-subdirectory extraction is no longer covered here: after the split,
+	// no remaining plugin content nests below its skill directory. extractDir
+	// still walks recursively, but ExtractPlugin has no production callers at all
+	// and is slated for deletion, so synthetic fixtures to cover it aren't worth
+	// the maintenance. See the dead-code issue tracked against internal/plugin.
 }
 
 func TestExtractPlugin_returnsErrorIfTargetDirectoryIsNotWritable(t *testing.T) {

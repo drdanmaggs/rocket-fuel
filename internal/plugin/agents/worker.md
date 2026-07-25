@@ -18,7 +18,7 @@ You have been given:
 ## Your job
 
 1. Read and understand the issue fully
-2. Execute the assigned skill (e.g., `/tdd`, `/bug-fix`, `/epc`)
+2. Execute the assigned skill (e.g., `/claude-skills:tdd`)
 3. Write code, tests, and documentation as needed
 4. Create a PR when done
 5. The PR title should reference the issue: e.g., `feat: add category search (#42)`
@@ -26,7 +26,7 @@ You have been given:
 ## Rules
 
 - **Stay focused.** You have one issue. Don't scope-creep.
-- **Follow the skill.** If assigned `/tdd`, follow TDD discipline. If `/bug-fix`, start with a failing test.
+- **Follow the skill.** If assigned `/claude-skills:tdd`, follow TDD discipline — and for a bug, that means starting with a failing test.
 - **Create a PR when done.** Use `gh pr create` with a clear title and description.
 - **Don't interact with other workers.** You're isolated in your own worktree.
 - **Don't modify the project board.** The Integrator handles that.
@@ -34,12 +34,17 @@ You have been given:
 
 ## Skill routing
 
+Skills live in the `claude-skills` plugin (`drdanmaggs/claude-skills`), not in this
+repo — hence the prefix.
+
 | Label | Skill | Approach |
 |-------|-------|----------|
-| `workflow:tdd` | `/tdd` | Test-driven: RED → GREEN → REFACTOR |
-| `workflow:bug-fix` | `/bug-fix` | Start with failing test, then fix |
-| `workflow:epc` | `/epc` | Explore → Plan → Code |
-| `workflow:issue-scope` | `/issue-scope` | Break down into sub-issues |
+| `workflow:tdd` | `/claude-skills:tdd` | Test-driven: RED → GREEN → REFACTOR |
+| `workflow:bug-fix`, `bug` | `/claude-skills:tdd` | Same loop — start with a failing test |
+| `workflow:issue-scope` | `/claude-skills:issue-scope` | Break down into sub-issues |
+
+`workflow:epc` routes to `/epc`, which does not exist in either plugin. If you are
+dispatched with it, fall back to `/claude-skills:tdd` and note it on the issue.
 
 ## When you're done
 

@@ -8,7 +8,7 @@ Based on the Visionary/Integrator model from *Rocket Fuel* by Gino Wickman & Mar
 
 You're the **Visionary** — ideas, direction, product thinking. You talk to the **Integrator**, an AI agent that manages execution: spawning workers, tracking progress, protecting the current sprint from your destabilising brilliance.
 
-Workers are ephemeral Claude Code instances running in isolated git worktrees, each picking up a GitHub issue and delivering a PR using your existing skills (`/tdd`, `/bug-fix`, `/epc`).
+Workers are ephemeral Claude Code instances running in isolated git worktrees, each picking up a GitHub issue and delivering a PR using your existing skills (`/claude-skills:tdd` and friends).
 
 The Integrator never says no. It scopes your ideas, parks them in Someday/Maybe, and redirects back to the current epic.
 
@@ -33,6 +33,24 @@ make install
 # Verify
 rocket-fuel version
 ```
+
+### Plugins
+
+Rocket Fuel ships two plugins' worth of behaviour across two repos. Workers dispatch to
+skills in `claude-skills`, so **both are required**:
+
+```bash
+claude plugin marketplace add drdanmaggs/claude-skills
+claude plugin install claude-skills
+
+claude plugin marketplace add drdanmaggs/rocket-fuel
+claude plugin install rocket-fuel
+```
+
+`claude-skills` carries the general-purpose toolkit — `/tdd`, `/ship`, `/code-reviewer`,
+`/issue-scope` and their subagents. This repo's plugin carries only what depends on the
+orchestrator: the `board-setup` and `worktree-reset` skills, and the Integrator and Worker
+agent definitions.
 
 ## Quick start
 
@@ -104,15 +122,18 @@ rocket-fuel down
 
 ## Skill routing
 
-Issues are routed to skills based on labels:
+Issues are routed to skills based on labels. The skills themselves live in the
+[`claude-skills`](https://github.com/drdanmaggs/claude-skills) plugin — see
+[Prerequisites](#prerequisites).
 
 | Label | Skill | Approach |
 |-------|-------|----------|
-| `workflow:tdd` | `/tdd` | RED → GREEN → REFACTOR |
-| `workflow:bug-fix` | `/bug-fix` | Failing test first |
-| `workflow:epc` | `/epc` | Explore → Plan → Code |
-| `workflow:issue-scope` | `/issue-scope` | Break down into sub-issues |
-| *(no label)* | `/epc` | Default |
+| `workflow:tdd` | `/claude-skills:tdd` | RED → GREEN → REFACTOR |
+| `workflow:bug-fix`, `bug` | `/claude-skills:tdd` | Same loop — failing test first |
+| `workflow:issue-scope` | `/claude-skills:issue-scope` | Break down into sub-issues |
+| *(no label)* | `/claude-skills:tdd` | Default — TDD always |
+
+`workflow:epc` routes to `/epc`, which does not currently exist in any plugin.
 
 ## Development
 
