@@ -72,15 +72,15 @@ func TestRouteSkillFromLabels(t *testing.T) {
 		labels   []string
 		expected string
 	}{
-		{"tdd label", []string{"workflow:tdd"}, "/tdd"},
-		{"bug-fix workflow label", []string{"workflow:bug-fix"}, "/tdd"},
-		{"bug label routes to tdd", []string{"bug"}, "/tdd"},
-		{"bug-fix label routes to tdd", []string{"bug-fix"}, "/tdd"},
+		{"tdd label", []string{"workflow:tdd"}, "/claude-skills:tdd"},
+		{"bug-fix workflow label", []string{"workflow:bug-fix"}, "/claude-skills:tdd"},
+		{"bug label routes to tdd", []string{"bug"}, "/claude-skills:tdd"},
+		{"bug-fix label routes to tdd", []string{"bug-fix"}, "/claude-skills:tdd"},
 		{"epc label", []string{"workflow:epc"}, "/epc"},
-		{"issue-scope label", []string{"workflow:issue-scope"}, "/issue-scope"},
-		{"no workflow label defaults to tdd", []string{"enhancement", "v0.1"}, "/tdd"},
-		{"empty labels defaults to tdd", nil, "/tdd"},
-		{"multiple labels picks first workflow", []string{"v0.1", "workflow:tdd", "workflow:epc"}, "/tdd"},
+		{"issue-scope label", []string{"workflow:issue-scope"}, "/claude-skills:issue-scope"},
+		{"no workflow label defaults to tdd", []string{"enhancement", "v0.1"}, "/claude-skills:tdd"},
+		{"empty labels defaults to tdd", nil, "/claude-skills:tdd"},
+		{"multiple labels picks first workflow", []string{"v0.1", "workflow:tdd", "workflow:epc"}, "/claude-skills:tdd"},
 	}
 
 	for _, tt := range tests {
@@ -186,7 +186,7 @@ func TestBuildRestartCommandReturnsCorrectClaudeCommand(t *testing.T) {
 		{"--agent worker", "should use agent worker flag"},
 		{"--dangerously-skip-permissions", "should skip permissions"},
 		{"#42", "should reference issue number"},
-		{"/tdd", "should include routed skill"},
+		{"/claude-skills:tdd", "should include routed skill"},
 	}
 
 	for _, check := range checks {

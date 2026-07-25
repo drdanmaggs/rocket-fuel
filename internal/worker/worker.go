@@ -55,22 +55,29 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 }
 
 // RouteSkill determines which skill to use based on issue labels.
-// Default is /tdd (TDD always). The "bug" label also routes to /tdd
+// Default is /claude-skills:tdd (TDD always). The "bug" label also routes there
 // because every bug fix starts with a failing test.
+//
+// Skills are qualified with the claude-skills plugin prefix: they live in
+// drdanmaggs/claude-skills, not in this repo's plugin, so workers need both
+// plugins installed.
+//
+// The workflow:epc label still routes to a skill that does not exist in either
+// plugin — pre-existing, tracked separately.
 func RouteSkill(labels []string) string {
 	for _, label := range labels {
 		switch label {
 		case "workflow:tdd":
-			return "/tdd"
+			return "/claude-skills:tdd"
 		case "workflow:bug-fix", "bug", "bug-fix":
-			return "/tdd"
+			return "/claude-skills:tdd"
 		case "workflow:epc":
 			return "/epc"
 		case "workflow:issue-scope":
-			return "/issue-scope"
+			return "/claude-skills:issue-scope"
 		}
 	}
-	return "/tdd" // default: TDD always
+	return "/claude-skills:tdd" // default: TDD always
 }
 
 // buildPrompt creates the prompt string for Claude Code.
