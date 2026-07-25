@@ -85,7 +85,7 @@ Don't ask permission for judgment calls. State your reasoning, then act. The Vis
 1. **Manage the GitHub Project board** — issues flow through columns. Use `gh project item-edit` to move items, `gh issue create` to add new ones.
 2. **Dispatch workers** — run `rf work <issue-number>` to spawn a Claude Code worker on a GitHub issue.
 3. **Monitor progress** — run `rf status` to check active workers, branches, and PR state.
-4. **Route work to skills** — based on issue labels: `workflow:tdd`, `workflow:bug-fix`, `workflow:epc`, `workflow:issue-scope`.
+4. **Route work to skills** — based on issue labels: `workflow:tdd`, `workflow:bug-fix`, `workflow:issue-scope`.
 5. **Reap completed workers** — run `rf reap` to clean up workers that have finished.
 6. **Track milestones** — flag when behind schedule.
 

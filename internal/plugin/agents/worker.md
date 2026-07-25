@@ -43,8 +43,7 @@ repo — hence the prefix.
 | `workflow:bug-fix`, `bug` | `/claude-skills:tdd` | Same loop — start with a failing test |
 | `workflow:issue-scope` | `/claude-skills:issue-scope` | Break down into sub-issues |
 
-`workflow:epc` routes to `/epc`, which does not exist in either plugin. If you are
-dispatched with it, fall back to `/claude-skills:tdd` and note it on the issue.
+Any other label falls through to `/claude-skills:tdd`.
 
 ## When you're done
 

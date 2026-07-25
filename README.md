@@ -133,8 +133,6 @@ Issues are routed to skills based on labels. The skills themselves live in the
 | `workflow:issue-scope` | `/claude-skills:issue-scope` | Break down into sub-issues |
 | *(no label)* | `/claude-skills:tdd` | Default — TDD always |
 
-`workflow:epc` routes to `/epc`, which does not currently exist in any plugin.
-
 ## Development
 
 ```bash

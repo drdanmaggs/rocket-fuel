@@ -62,8 +62,10 @@ func Spawn(tm tmux.Runner, cfg SpawnConfig, issue Issue) error {
 // drdanmaggs/claude-skills, not in this repo's plugin, so workers need both
 // plugins installed.
 //
-// The workflow:epc label still routes to a skill that does not exist in either
-// plugin — pre-existing, tracked separately.
+// Every returned skill must exist in an installed plugin. A route to a
+// non-existent skill is worse than no route at all: the worker spawns, burns a
+// worktree and a tmux session, then fails on an unknown command. Unrecognised
+// labels fall through to the TDD default instead.
 func RouteSkill(labels []string) string {
 	for _, label := range labels {
 		switch label {
@@ -71,8 +73,6 @@ func RouteSkill(labels []string) string {
 			return "/claude-skills:tdd"
 		case "workflow:bug-fix", "bug", "bug-fix":
 			return "/claude-skills:tdd"
-		case "workflow:epc":
-			return "/epc"
 		case "workflow:issue-scope":
 			return "/claude-skills:issue-scope"
 		}

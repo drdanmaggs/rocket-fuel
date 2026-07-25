@@ -27,14 +27,37 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Auto-tag
+      - name: Compute version
         id: tag
         run: |
-          # Generate version from date + short hash
-          VERSION="v0.$(date +%Y%m%d).$(git rev-parse --short HEAD)"
-          git tag "$VERSION"
-          git push origin "$VERSION"
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+          # Semver: v0.<YYYYMMDD>.<n>, where n is the build number for that date.
+          # The previous scheme appended the short SHA, which is hex — any tag
+          # containing a letter failed GoReleaser's semver parse, so releases only
+          # ever succeeded when the SHA happened to be all digits.
+          DATE="$(date +%Y%m%d)"
+          N=0
+          while git rev-parse -q --verify "refs/tags/v0.${DATE}.${N}" >/dev/null; do
+            N=$((N + 1))
+          done
+          VERSION="v0.${DATE}.${N}"
+          echo "Resolved version: ${VERSION}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify GoReleaser config before tagging
+        # Tag only after we know the release can build. The old workflow pushed the
+        # tag first, so every failed run left an orphan tag behind — 60+ of them.
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: check
+
+      - name: Tag
+        run: |
+          set -euo pipefail
+          git tag "${{ steps.tag.outputs.version }}"
+          git push origin "${{ steps.tag.outputs.version }}"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
@@ -44,3 +67,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete tag if release failed
+        if: failure()
+        run: git push --delete origin "${{ steps.tag.outputs.version }}" || true
