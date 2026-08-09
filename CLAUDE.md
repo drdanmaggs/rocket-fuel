@@ -2,6 +2,23 @@
 
 Multi-agent orchestrator: Visionary/Integrator model over tmux-CC, GitHub Projects, Claude Code skills, and git worktrees.
 
+## Working mode
+
+**Class A — development-only checkout, single copy.** No worktree fleet: this is
+a checkout you work in **directly**, on a branch.
+
+That is the opposite of the estate's fleet repos (`family-meal-planner-v3`,
+`Productivity_Coach`, `productivity-coach-ios`), where the base checkout is
+detached and never worked in. Worth stating, because the estate default is
+otherwise and the wrong assumption here reads as "don't commit in this
+directory".
+
+It is deliberately **not** listed for `dev-box-janitor`'s automatic
+base-checkout refresh, for the same reason: an auto-detach would move your
+working branch out from under you.
+
+Full taxonomy: `~/.claude/docs/repo-topology.md` (ADR 002)
+
 ## Vision
 
 Read `docs/vision.md` for the full concept, `docs/gastown-lessons.md` for prior art analysis.
